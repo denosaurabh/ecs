@@ -3,8 +3,8 @@ import { defineConfig } from "vite";
 export default defineConfig({
   resolve: {
     alias: {
-      "@ecs": "/src/engine/ecs/index",
-      "@3d": "/src/engine/3d/index",
+      "@ecs": "/src/core/ecs/index",
+      "@3d": "/src/core/3d/index",
     },
   },
 });
