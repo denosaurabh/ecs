@@ -4,44 +4,46 @@ import { nanoid } from "nanoid";
 /*                                               COMPONENT                                                            */
 /* ****************************************************************************************************************** */
 
+const factoryIdKey = "factoryId" as const;
+
 export class ComponentFactory<T> {
   public readonly hashId: HashId;
-  public readonly factoryId: HashId;
+  public readonly [factoryIdKey]: HashId;
 
   private properties: T;
 
   constructor(props: T, factoryId: HashId) {
     this.hashId = componentUniqueId();
-    this.factoryId = factoryId;
+    this[factoryIdKey] = factoryId;
 
     this.properties = props;
   }
 
-  get(): Readonly<T> {
+  get(): T {
     return this.properties;
+  }
+
+  set(updatedProps: T) {
+    this.properties = updatedProps;
   }
 }
 
-// get Constructor Auguments
-type ConstructorArguments<T> = T extends new (arg: infer P) => any ? P : never;
-export type Component<T> = ComponentFactory<ConstructorArguments<T>>;
+export type Component<T> = ComponentFactory<T>;
 
-type ComponentCreator<T> = ((args: T) => Component<T>) & {
-  readonly factoryId: HashId;
+type ComponentCreator<T> = ((args: T) => ComponentFactory<T>) & {
+  readonly [factoryIdKey]: HashId;
 };
 
 export const component = <T>(factoryId: string, defaultValues?: Partial<T>) => {
-  // const factoryId = componentFactoryId();
-
   const fn = (args: T) => {
     return new (class extends ComponentFactory<T> {
       constructor(props: T) {
-        super(defaultValue(props, defaultValues as T), factoryId);
+        super(defaultValue(props, defaultValues), factoryId);
       }
     })(args);
   };
 
-  Object.defineProperty(fn, "factoryId", {
+  Object.defineProperty(fn, factoryIdKey, {
     value: factoryId,
     writable: false,
     configurable: false,
@@ -51,57 +53,16 @@ export const component = <T>(factoryId: string, defaultValues?: Partial<T>) => {
 };
 
 /* ****************************************************************************************************************** */
-/*                                                 ENTITY                                                             */
-/* ****************************************************************************************************************** */
-
-/*
-type ExtractComponentProps<T extends ComponentCreator<any>> =
-  T extends ComponentCreator<infer Props> ? Props : never;
-
-type ComponentPropsToArgs<T extends Record<string, ComponentCreator<any>>> = {
-  [K in keyof T]: ExtractComponentProps<T[K]>;
-};
-
-type ComponentCreatorsToComponents<
-  T extends Record<string, ComponentCreator<any>>
-> = {
-  [K in keyof T]: Component<ExtractComponentProps<T[K]>>;
-};
-
-class EntityFactory<T> {
-  public readonly hashId: HashId;
-  public components: T;
-
-  constructor(props: T) {
-    this.hashId = createHashId();
-    this.components = props;
-  }
-}
-
-export const entity = <
-  Props extends Record<string, ComponentCreator<any>>,
-  Args extends ComponentPropsToArgs<Props> = ComponentPropsToArgs<Props>
->(
-  parsePropsFn: (props: Args) => ComponentCreatorsToComponents<Props>
-) => {
-  return (props: Args): EntityFactory<ComponentCreatorsToComponents<Props>> => {
-    const parsedProps = parsePropsFn(props);
-    return new EntityFactory<ComponentCreatorsToComponents<Props>>(parsedProps);
-  };
-};
-*/
-
-/* ****************************************************************************************************************** */
 /*                                                RESOURCE                                                            */
 /* ****************************************************************************************************************** */
 
 export class ECSResource<T> {
   readonly name: string;
-  private state: T;
+  private state?: T;
 
   private subscribers: Array<<T>(updatedState: T) => void> = [];
 
-  constructor(name: string, props: T) {
+  constructor(name: string, props?: T) {
     this.name = name;
     this.state = props;
   }
@@ -124,9 +85,12 @@ export class ECSResource<T> {
 }
 
 // get Constructor Auguments
-export type Resource<T> = ECSResource<ConstructorArguments<T>>;
+export type Resource<T> = ECSResource<T>;
 
-export const resource = <T>(props: T): ECSResource<T> => {
+export type ResourceRead<T> = Pick<ECSResource<T>, "name">;
+export type ResourceMut<T> = ECSResource<T>;
+
+export const resource = <T>(props?: T): ECSResource<T> => {
   const res = new ECSResource<T>(resourceUniqueId(), props);
   return res;
 };
@@ -138,8 +102,11 @@ export const resource = <T>(props: T): ECSResource<T> => {
 export interface System {
   query: (
     world: World
-  ) => Record<string, Map<string, Map<string, Component<any>>>>;
-  execute: (args: ReturnType<this["query"]>) => void;
+  ) => Record<
+    string,
+    ECSResource<unknown> | undefined | Map<string, Map<string, Component<any>>>
+  >;
+  execute: (args: ReturnType<this["query"]>) => Promise<void> | void;
 }
 
 export class Schedule {
@@ -155,12 +122,24 @@ export class Schedule {
     this.systems.push(system);
   }
 
+  async run_promise() {
+    for (const { query, execute } of this.systems) {
+      await execute(query(this.world));
+    }
+  }
+
   run() {
-    this.systems.map(({ query, execute }) => {
+    for (const { query, execute } of this.systems) {
       execute(query(this.world));
-    });
+    }
   }
 }
+
+/* ****************************************************************************************************************** */
+/*                                             EVENTS SCHEDULE                                                        */
+/* ****************************************************************************************************************** */
+
+// TODO: Implement Event Schedule
 
 /* ****************************************************************************************************************** */
 /*                                                WORLD                                                               */
@@ -206,19 +185,6 @@ export class World {
     this.entities.set(entityId, componentMap);
     this.queryManager.addEntity(entityId, componentMap);
   }
-
-  // de_spawn(entityIds: string[] | string) {
-  //   if (typeof entityIds === "string") {
-  //     this.entities.delete(entityIds);
-  //     return this;
-  //   }
-
-  //   entityIds.forEach((id) => {
-  //     this.entities.delete(id);
-  //   });
-
-  //   return this;
-  // }
 
   entity(entityId: string) {
     return this.entities.get(entityId);
@@ -332,6 +298,36 @@ class Query {
 }
 
 /* ****************************************************************************************************************** */
+/*                                                COMMANDS                                                            */
+/* ****************************************************************************************************************** */
+
+export class CommandEncoder {
+  world: World;
+
+  constructor(world: World) {
+    this.world = world;
+  }
+
+  /* ******* READ ******* */
+  get_resource<T>(resourceName: string): ECSResource<T> | undefined {
+    return this.world.get_resource(resourceName);
+  }
+
+  query() {
+    return this.world.query;
+  }
+
+  /* ******* WRITE ******* */
+  spawn(...components: Array<Array<Component<unknown>> | Component<unknown>>) {
+    this.world.spawn(...components);
+  }
+
+  insert_resource(resource: ECSResource<unknown>) {
+    this.world.insert_resource(resource);
+  }
+}
+
+/* ****************************************************************************************************************** */
 /*                                            ASSET SERVER                                                            */
 /* ****************************************************************************************************************** */
 
@@ -352,9 +348,9 @@ function componentUniqueId() {
   return nanoid();
 }
 
-function componentFactoryId() {
-  return nanoid(6);
-}
+// function componentFactoryId() {
+//   return nanoid(6);
+// }
 
 function entityUniqueId() {
   return nanoid(5);
@@ -365,9 +361,10 @@ function resourceUniqueId() {
 }
 
 // export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-// export type CompParam<T extends (...args: any) => any> = Parameters<T>[0];
+export type CompParam<T extends (...args: any) => any> = Parameters<T>[0];
+// export type ResourceParam<T extends ECSResource<T>> = Parameters<T>[0];
 
-function defaultValue<T>(a: T, b?: T): T {
+function defaultValue<T>(a: T, b?: Partial<T>): T {
   if (b === undefined || typeof a !== "object" || typeof b !== "object") {
     return a || (b as T);
   }
