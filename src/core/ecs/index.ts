@@ -99,15 +99,17 @@ export const resource = <T>(props?: T): ECSResource<T> => {
 /*                                                SCHEDULE                                                            */
 /* ****************************************************************************************************************** */
 
-export interface System {
-  query: (
-    world: World
-  ) => Record<
-    string,
-    ECSResource<unknown> | undefined | Map<string, Map<string, Component<any>>>
-  >;
-  execute: (args: ReturnType<this["query"]>) => Promise<void> | void;
-}
+// export interface System {
+//   query: (
+//     world: World
+//   ) => Record<
+//     string,
+//     ECSResource<unknown> | undefined | Map<string, Map<string, Component<any>>>
+//   >;
+//   execute: (args: ReturnType<this["query"]>) => Promise<void> | void;
+// }
+
+export type System = (world: World) => Promise<void> | void;
 
 export class Schedule {
   world: World;
@@ -123,14 +125,14 @@ export class Schedule {
   }
 
   async run_promise() {
-    for (const { query, execute } of this.systems) {
-      await execute(query(this.world));
+    for (const execute of this.systems) {
+      await execute(this.world);
     }
   }
 
   run() {
-    for (const { query, execute } of this.systems) {
-      execute(query(this.world));
+    for (const execute of this.systems) {
+      execute(this.world);
     }
   }
 }

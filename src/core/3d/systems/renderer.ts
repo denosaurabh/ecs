@@ -1,6 +1,9 @@
-import { World } from "@ecs";
+import { System, World } from "@ecs";
+import { renderer_data } from "../resources";
 
-export const renderer = async (world: World) => {
+export const Renderer: System = async (_world: World) => {
+  const renderer_resource = renderer_data;
+
   if (!navigator.gpu) {
     alert("WebGPU is not supported on your browser!");
     return;
@@ -47,5 +50,14 @@ export const renderer = async (world: World) => {
     alphaMode: "opaque",
   });
 
-  //   args.resources.find((r) => r.name === RendererState.name);
+  const data = {
+    width,
+    height,
+
+    device,
+    context,
+    format,
+  };
+
+  renderer_resource?.set(data);
 };

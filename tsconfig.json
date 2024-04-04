@@ -22,7 +22,9 @@
     "baseUrl": ".",
     "paths": {
       "@ecs": ["src/core/ecs/index"],
-      "@3d": ["src/core/3d/index"]
+      "@storage": ["src/core/storage/index"],
+      "@rendergraph": ["src/core/rendergraph/index"],
+      "@3d/*": ["src/core/3d/*"]
     },
 
     "types": ["@webgpu/types"]

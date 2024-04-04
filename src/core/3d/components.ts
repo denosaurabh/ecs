@@ -1,52 +1,59 @@
 import { component } from "@ecs";
 
-// export const Name = component<string>();
-
-// export const Translation = component<[number, number, number]>();
-// export const Rotation = component<[number, number, number, number]>();
-// export const Scale = component<[number, number, number]>();
-
 type Translate = [number, number, number];
 type Rotate = [number, number, number, number];
 type Scale = [number, number, number];
 
-type Camera3DProps = {
-  type: "ORTHOGRAPHIC" | "PERSPECTIVE";
-
+type OrthographicCameraProps = {
   translation: Translate;
   target: Translate;
 
   near?: number;
   far?: number;
-  frustum?: number;
+
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
 
   name?: string;
 };
 
-export const Camera3D = component<Camera3DProps>("Camera3D", {
-  type: "ORTHOGRAPHIC",
+export const OrthographicCamera = component<OrthographicCameraProps>(
+  "OrthographicCamera",
+  {
+    near: 0.001,
+    far: 1000,
 
-  near: 0.001,
-  far: 1000,
-  frustum: 15,
-});
+    left: 0,
+    right: 0,
+    top: window.innerWidth,
+    bottom: window.innerHeight,
+  }
+);
 
 // mesh
 type GeometryProps = {
   verticies: Float32Array;
   vertexCount: number;
 
-  usage?: GPUBufferUsage | number;
+  usage: number; // GPUBufferUsage
+
+  lengthPerVertex: number;
+  verticiesCount: number;
 
   attributes: Array<{
-    type: "POSITION" | "NORMAL" | "CUSTOM";
-    length: number;
+    type: "POSITION" | "NORMAL" | "UV" | "CUSTOM";
+    offset: number;
+    format: GPUVertexFormat;
   }>;
 };
 
 type MaterialProps = {
-  vertex: string;
-  fragment: string;
+  shader: string;
+
+  vertexEntryPoint: string;
+  fragmentEntryPoint: string;
 };
 
 export const Mesh = component<{

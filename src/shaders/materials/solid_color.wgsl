@@ -1,16 +1,61 @@
+// struct Uniforms {
+//     projectionViewMatrix : mat4x4f,
+// }
+
+// @binding(0) @group(0) var<uniform> uniforms : Uniforms;
+@group(0) @binding(0) var<uniform> time : f32;
+@group(0) @binding(1) var<uniform> projectionView : mat4x4f;
+  
+struct VertexOutput {
+    @builtin(position) Position : vec4f,
+    @location(0) fragUV : vec2f,
+    @location(1) fragPosition: vec4f,
+}
+  
+@vertex
+fn vertexMain(
+    @location(0) position : vec4f,
+    @location(1) color : vec4f,
+    @location(2) uv : vec2f
+) -> VertexOutput {
+    var output : VertexOutput;
+    // output.Position = projectionView * position;
+    output.Position =  position;
+
+    output.fragUV = uv;
+
+    // output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0)) * sin(time);
+    output.fragPosition = vec4(1.0, 0.0, 0.0, 1.0) * abs(sin(time));
+    // output.fragPosition = vec4(1.0, 0.0, 0.0, 1.0);
+
+    return output;
+}
+
+@fragment
+fn fragMain(
+  @location(0) fragUV: vec2f,
+  @location(1) fragPosition: vec4f
+) -> @location(0) vec4f {
+  return fragPosition;
+}
+
+
+
+
+/*
 struct TransformData {
     view: mat4x4f,
     projection: mat4x4f,
 };
 
 @binding(0) @group(0) var<uniform> mvpMatrix: TransformData;
-@binding(1) @group(0) var tex: texture_2d<f32>;
-@binding(2) @group(0) var texSampler: sampler;
+// @binding(1) @group(0) var tex: texture_2d<f32>;
+// @binding(2) @group(0) var texSampler: sampler;
 
 struct VertexOutput {
     @builtin (position) Position: vec4f,
     @location(0) Normal: vec4f,
-    @location(1) BaseColor: vec4f,
+    // @location(1) BaseColor: vec4f,
 };
 
 @vertex
@@ -18,24 +63,24 @@ fn vertexMain(
     @location(0) pos: vec3f,
     @location(1) normal: vec3f,
     @location(2) translation: vec3f,
-    @location(3) rotation: vec3f,
-    @location(4) scale: vec3f,
-    @location(5) baseColor: vec4f,
+    // @location(3) rotation: vec3f,
+    // @location(4) scale: vec3f,
+    // @location(5) baseColor: vec4f,
 ) -> VertexOutput
 {
     var output: VertexOutput;
 
-    var correctRotation = vec3f(-rotation.x, -rotation.z, rotation.y);
+    // var correctRotation = vec3f(-rotation.x, -rotation.z, rotation.y);
 
-    let modelMatrix = computeModelMatrix(
-        translation,
-        rotation,
-        scale
-    );
+    // let modelMatrix = computeModelMatrix(
+    //     translation,
+    //     rotation,
+    //     scale
+    // );
 
-    output.Position = mvpMatrix.projection * mvpMatrix.view * modelMatrix * vec4f(pos, 1.0);
-    output.Normal =  abs(eulerToMatrix(correctRotation) * vec4f(normal, 1.0));
-    output.BaseColor = baseColor;
+    // output.Position = mvpMatrix.projection * mvpMatrix.view * modelMatrix * vec4f(pos, 1.0);
+    // output.Normal =  abs(eulerToMatrix(correctRotation) * vec4f(normal, 1.0));
+    // output.BaseColor = baseColor;
 
     return output;
 }
@@ -45,8 +90,10 @@ fn fragMain(
    input: VertexOutput
 ) -> @location(0) vec4f
 {
-    return input.BaseColor;
+    // return input.BaseColor;
     // return vec4f(input.Normal);
+
+    return vec4f(1.0, 0.0, 0.0, 1.0);
 }
 
 /* ********************************************************************************************** */
@@ -135,3 +182,5 @@ fn computeModelMatrix(translation: vec3f, rotation: vec3f, scale: vec3f) -> mat4
     // Combine the matrices
     return tMatrix * rMatrix * sMatrix;
 }
+
+*/

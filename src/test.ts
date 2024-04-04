@@ -52,39 +52,36 @@ const cubeVertexArray = new Float32Array([
   -1, 1, -1, 1,  0, 1, 0, 1,  1, 0,
 ]);
 
-const basicVertWGSL = `
-struct Uniforms {
-    modelViewProjectionMatrix : mat4x4f,
-  }
-  @binding(0) @group(0) var<uniform> uniforms : Uniforms;
-  
-  struct VertexOutput {
-    @builtin(position) Position : vec4f,
-    @location(0) fragUV : vec2f,
-    @location(1) fragPosition: vec4f,
-  }
-  
-  @vertex
-  fn main(
-    @location(0) position : vec4f,
-    @location(1) uv : vec2f
-  ) -> VertexOutput {
-    var output : VertexOutput;
-    output.Position = uniforms.modelViewProjectionMatrix * position;
-    output.fragUV = uv;
-    output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
-    return output;
-  }
-`;
-
-const vertexPositionColorWGSL = `
-@fragment
-fn main(
-  @location(0) fragUV: vec2f,
-  @location(1) fragPosition: vec4f
-) -> @location(0) vec4f {
-  return fragPosition;
+const basicWGSL = `
+struct VertexOutput {
+  @builtin(position) Position : vec4f,
+  @location(0) fragUV : vec2f,
+  @location(1) fragPosition: vec4f,
 }
+
+@vertex
+fn vertexMain(
+  @location(0) position : vec4f,
+  @location(1) color : vec4f,
+  @location(2) uv : vec2f
+) -> VertexOutput {
+  var output : VertexOutput;
+  // output.Position = uniforms.modelViewProjectionMatrix * position;
+  output.Position =  position;
+
+  output.fragUV = uv;
+  output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
+  return output;
+}
+
+@fragment
+fn fragMain(
+@location(0) fragUV: vec2f,
+@location(1) fragPosition: vec4f
+) -> @location(0) vec4f {
+return fragPosition;
+}
+
 
 `;
 
@@ -106,22 +103,28 @@ context.configure({
 });
 
 // Create a vertex buffer from the cube data.
-const verticesBuffer = device.createBuffer({
-  size: cubeVertexArray.byteLength,
-  usage: GPUBufferUsage.VERTEX,
-  mappedAtCreation: true,
+
+// new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray);
+// verticesBuffer.unmap();
+
+const bindGroupLayouts: GPUBindGroupLayout[] = [];
+
+const pipelineLayout = device.createPipelineLayout({
+  bindGroupLayouts,
 });
-new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray);
-verticesBuffer.unmap();
+
+const shader = device.createShaderModule({
+  code: basicWGSL,
+});
 
 const pipeline = device.createRenderPipeline({
-  layout: "auto",
+  layout: pipelineLayout,
   vertex: {
-    module: device.createShaderModule({
-      code: basicVertWGSL,
-    }),
+    module: shader,
+    entryPoint: "vertexMain",
     buffers: [
       {
+        stepMode: "vertex",
         arrayStride: cubeVertexSize,
         attributes: [
           {
@@ -131,8 +134,14 @@ const pipeline = device.createRenderPipeline({
             format: "float32x4",
           },
           {
-            // uv
+            // position
             shaderLocation: 1,
+            offset: cubeColorOffset,
+            format: "float32x4",
+          },
+          {
+            // uv
+            shaderLocation: 2,
             offset: cubeUVOffset,
             format: "float32x2",
           },
@@ -141,9 +150,8 @@ const pipeline = device.createRenderPipeline({
     ],
   },
   fragment: {
-    module: device.createShaderModule({
-      code: vertexPositionColorWGSL,
-    }),
+    module: shader,
+    entryPoint: "fragMain",
     targets: [
       {
         format: presentationFormat,
@@ -161,36 +169,36 @@ const pipeline = device.createRenderPipeline({
 
   // Enable depth testing so that the fragment closest to the camera
   // is rendered in front.
-  depthStencil: {
-    depthWriteEnabled: true,
-    depthCompare: "less",
-    format: "depth24plus",
-  },
+  // depthStencil: {
+  //   depthWriteEnabled: true,
+  //   depthCompare: "less",
+  //   format: "depth24plus",
+  // },
 });
 
-const depthTexture = device.createTexture({
-  size: [canvas.width, canvas.height],
-  format: "depth24plus",
-  usage: GPUTextureUsage.RENDER_ATTACHMENT,
-});
+// const depthTexture = device.createTexture({
+//   size: [canvas.width, canvas.height],
+//   format: "depth24plus",
+//   usage: GPUTextureUsage.RENDER_ATTACHMENT,
+// });
 
-const uniformBufferSize = 4 * 16; // 4x4 matrix
-const uniformBuffer = device.createBuffer({
-  size: uniformBufferSize,
-  usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-});
+// const uniformBufferSize = 4 * 16; // 4x4 matrix
+// const uniformBuffer = device.createBuffer({
+//   size: uniformBufferSize,
+//   usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+// });
 
-const uniformBindGroup = device.createBindGroup({
-  layout: pipeline.getBindGroupLayout(0),
-  entries: [
-    {
-      binding: 0,
-      resource: {
-        buffer: uniformBuffer,
-      },
-    },
-  ],
-});
+// const uniformBindGroup = device.createBindGroup({
+//   layout: pipeline.getBindGroupLayout(0),
+//   entries: [
+//     {
+//       binding: 0,
+//       resource: {
+//         buffer: uniformBuffer,
+//       },
+//     },
+//   ],
+// });
 
 const renderPassDescriptor: GPURenderPassDescriptor = {
   colorAttachments: [
@@ -202,44 +210,55 @@ const renderPassDescriptor: GPURenderPassDescriptor = {
       storeOp: "store",
     },
   ],
-  depthStencilAttachment: {
-    view: depthTexture.createView(),
+  // depthStencilAttachment: {
+  //   view: depthTexture.createView(),
 
-    depthClearValue: 1.0,
-    depthLoadOp: "clear",
-    depthStoreOp: "store",
-  },
+  //   depthClearValue: 1.0,
+  //   depthLoadOp: "clear",
+  //   depthStoreOp: "store",
+  // },
 };
 
-const aspect = canvas.width / canvas.height;
-const projectionMatrix = mat4.perspective((2 * Math.PI) / 5, aspect, 1, 100.0);
-const modelViewProjectionMatrix = mat4.create();
+// const aspect = canvas.width / canvas.height;
+// const projectionMatrix = mat4.perspective((2 * Math.PI) / 5, aspect, 1, 100.0);
+// const modelViewProjectionMatrix = mat4.create();
 
-function getTransformationMatrix() {
-  const viewMatrix = mat4.identity();
-  mat4.translate(viewMatrix, vec3.fromValues(0, 0, -4), viewMatrix);
-  const now = Date.now() / 1000;
-  mat4.rotate(
-    viewMatrix,
-    vec3.fromValues(Math.sin(now), Math.cos(now), 0),
-    1,
-    viewMatrix
-  );
+// function getTransformationMatrix() {
+//   const viewMatrix = mat4.identity();
+//   mat4.translate(viewMatrix, vec3.fromValues(0, 0, -4), viewMatrix);
+//   const now = Date.now() / 1000;
+//   mat4.rotate(
+//     viewMatrix,
+//     vec3.fromValues(Math.sin(now), Math.cos(now), 0),
+//     1,
+//     viewMatrix
+//   );
 
-  mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
+//   mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
 
-  return modelViewProjectionMatrix as Float32Array;
-}
+//   return modelViewProjectionMatrix as Float32Array;
+// }
+
+const verticesBuffer = device.createBuffer({
+  size: cubeVertexArray.byteLength,
+  usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+  // mappedAtCreation: true,
+});
 
 function frame() {
-  const transformationMatrix = getTransformationMatrix();
-  device.queue.writeBuffer(
-    uniformBuffer,
-    0,
-    transformationMatrix.buffer,
-    transformationMatrix.byteOffset,
-    transformationMatrix.byteLength
-  );
+  // const transformationMatrix = getTransformationMatrix();
+  // device.queue.writeBuffer(
+  //   uniformBuffer,
+  //   0,
+  //   transformationMatrix.buffer,
+  //   transformationMatrix.byteOffset,
+  //   transformationMatrix.byteLength
+  // );
+
+  device.queue.writeBuffer(verticesBuffer, 0, cubeVertexArray);
+
+  // console.log(verticesBuffer);
+
   renderPassDescriptor.colorAttachments[0].view = context
     .getCurrentTexture()
     .createView();
@@ -247,7 +266,7 @@ function frame() {
   const commandEncoder = device.createCommandEncoder();
   const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
   passEncoder.setPipeline(pipeline);
-  passEncoder.setBindGroup(0, uniformBindGroup);
+  // passEncoder.setBindGroup(0, uniformBindGroup);
   passEncoder.setVertexBuffer(0, verticesBuffer);
   passEncoder.draw(cubeVertexCount);
   passEncoder.end();
