@@ -1,5 +1,3 @@
-import { mat4, vec3 } from "wgpu-matrix";
-
 const cubeVertexSize = 4 * 10; // Byte size of one cube vertex.
 const cubePositionOffset = 0;
 const cubeColorOffset = 4 * 4; // Byte offset of cube vertex color attribute.
