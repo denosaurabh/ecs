@@ -22,6 +22,8 @@ import { Renderer } from "@3d/systems";
 import { animate } from "./utils";
 import { mat4, Mat4 } from "wgpu-matrix";
 
+import { Transform } from "@utils";
+
 // import "./test";
 const run = true;
 
@@ -126,6 +128,23 @@ const generalBindGroup = storage.bindGroups.add({
   ],
 });
 
+const BoxTransform = new Transform().translate(0, 0, 0).scale(1, 1, 1);
+
+const boxBindGroup = storage.bindGroups.add({
+  label: "box bind group",
+  entries: [
+    {
+      visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+      resource: BoxTransform.getStorageBuffer(storage.buffers),
+      type: BindGroupEntryType.buffer({
+        type: "uniform",
+        minBindingSize: 64,
+        hasDynamicOffset: false,
+      }),
+    },
+  ],
+});
+
 const SolidColorShader = storage.shaders.add({
   code: SolidColorShaderWgsl,
   fragFn: "fragMain",
@@ -146,7 +165,7 @@ const BoxRenderPass = RenderPassComponent({
     {
       label: "box render",
 
-      bindGroups: [generalBindGroup],
+      bindGroups: [generalBindGroup, boxBindGroup],
       shader: SolidColorShader,
 
       vertexBufferLayouts: [BoxVertexBuffer],
@@ -211,8 +230,8 @@ const setup = new Schedule(world);
 
 setup.add_system(Renderer);
 setup.add_system(Prepare);
-setup.add_system(WriteBuffer);
 setup.add_system(OrthographicCameraSystemInit);
+setup.add_system(WriteBuffer);
 
 if (run) {
   await setup.run_promise();
@@ -415,6 +434,11 @@ function OrthographicCameraSystemInit(world: World) {
 
   mat4.ortho(left, right, bottom, top, near, far, projection);
   mat4.lookAt(eye, target, up, view);
+
+  // set
+  orthoCameraEntity
+    .get(OrthographicCameraComponent.factoryId)
+    ?.set({ ...cam, projection, view });
 }
 
 function WriteBuffer() {
@@ -438,12 +462,12 @@ function WriteBuffer() {
     throw new Error("whoooeeereeee is he!!! (orthoCamera). or projection/view");
   }
 
-  storage.buffers.write(
-    projectionViewBuffer,
-    // @ts-ignore
-    <ArrayBuffer>mat4.multiply(cam.projection, cam.view),
-    device
-  );
+  const viewProjection = mat4.multiply(
+    cam.projection,
+    cam.view
+  ) as Float32Array;
+
+  storage.buffers.write(projectionViewBuffer, viewProjection, device);
 
   // vertexes
   storage.vertexBuffers.write(BoxVertexBuffer, cubeVerticies, device);
@@ -456,12 +480,18 @@ function UpdateTime() {
     throw new Error("no device");
   }
 
-  storage.buffers.setData(timeBuffer, [performance.now() / 1000.0]);
+  const updatedTime = performance.now() / 1000.0;
+
+  storage.buffers.setData(timeBuffer, [updatedTime]);
   storage.buffers.write(
     timeBuffer,
     storage.buffers.get(timeBuffer).data,
     device
   );
+
+  // transforms
+  // const s = 1 * Math.abs(Math.sin(updatedTime) * 0.1);
+  // BoxTransform.rotateX(updatedTime).writeBuffer(storage.buffers, device);
 }
 
 function Render(world: World) {

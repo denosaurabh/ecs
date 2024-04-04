@@ -1,18 +1,22 @@
 import { nanoid } from "nanoid";
 import { StorageRef } from "./types";
 
-type BufferDescriptor = {
+export type BufferStorageDescriptor = {
   label?: string;
 
   size: number;
   usage: GPUBufferUsageFlags;
+
   mappedAtCreation?: boolean;
+  writeOnCreation?: boolean;
+
+  data?: Float32Array;
 };
 
 type VertexBufferMapValue = {
   data: Float32Array;
 
-  descriptor: GPUBufferDescriptor;
+  descriptor: GPUBufferDescriptor & { writeOnCreation?: boolean };
   buffer?: GPUBuffer;
 };
 
@@ -21,16 +25,19 @@ type Ref = StorageRef<typeof BuffersManager>;
 export class BufferManager {
   private vertex: Map<string, VertexBufferMapValue> = new Map();
 
-  add(descriptor: BufferDescriptor): Ref {
+  add(descriptor: BufferStorageDescriptor): Ref {
     const id = nanoid(7);
 
     this.vertex.set(id, {
-      data: new Float32Array(descriptor.size / Float32Array.BYTES_PER_ELEMENT),
+      data:
+        descriptor.data ||
+        new Float32Array(descriptor.size / Float32Array.BYTES_PER_ELEMENT),
       descriptor: {
         label: descriptor.label,
         size: descriptor.size,
         usage: descriptor.usage,
         mappedAtCreation: descriptor.mappedAtCreation,
+        writeOnCreation: descriptor.writeOnCreation,
       },
     });
 
@@ -65,6 +72,11 @@ export class BufferManager {
 
     const buffer = device.createBuffer(val.descriptor);
     this.vertex.set(ref.id, { ...val, buffer });
+
+    // writeOnCreation
+    if (val.descriptor.writeOnCreation) {
+      device.queue.writeBuffer(buffer, 0, val.data);
+    }
 
     return buffer;
   }

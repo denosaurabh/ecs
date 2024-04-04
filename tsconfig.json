@@ -24,6 +24,7 @@
       "@ecs": ["src/core/ecs/index"],
       "@storage": ["src/core/storage/index"],
       "@rendergraph": ["src/core/rendergraph/index"],
+      "@utils": ["src/core/utils/index"],
       "@3d/*": ["src/core/3d/*"]
     },
 
