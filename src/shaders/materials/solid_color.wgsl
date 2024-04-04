@@ -10,8 +10,7 @@
 
 struct VertexOutput {
     @builtin(position) Position : vec4f,
-    @location(0) fragUV : vec2f,
-    @location(1) fragPosition: vec4f,
+    @location(0) color: vec4f,
 }
   
 @vertex
@@ -21,27 +20,19 @@ fn vertexMain(
     @location(2) uv : vec2f
 ) -> VertexOutput {
     var output : VertexOutput;
-    // output.Position = projectionView * position;
     output.Position =  projectionView * modelMat * position;
 
-    output.fragUV = uv;
-
-    // output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0)) * sin(time);
-    output.fragPosition = vec4(1.0, 0.0, 0.0, 1.0) * abs(sin(time));
-    // output.fragPosition = vec4(1.0, 0.0, 0.0, 1.0);
+    output.color = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
 
     return output;
 }
 
 @fragment
 fn fragMain(
-  @location(0) fragUV: vec2f,
-  @location(1) fragPosition: vec4f
+  @location(0) color: vec4f,
 ) -> @location(0) vec4f {
-  return fragPosition;
+  return color;
 }
-
-
 
 
 /*

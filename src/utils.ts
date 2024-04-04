@@ -14,7 +14,7 @@ export const animate = (callback: () => void) => {
 
     frameCount = `${(endTime - startTime).toFixed(2)} ms`;
 
-    // fpsElement.textContent = frameCount;
+    fpsElement.textContent = frameCount;
   });
 };
 
