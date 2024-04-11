@@ -3,17 +3,13 @@ import { OrthographicCameraProps } from "../components";
 import { RendererData } from "./init";
 import { BuffersManager, StorageManager, StorageRef } from "../storage";
 
-export const OrthographicCameraSystemInit = (
+export const OrthoCameraSetupViewAndProjMatrix = (
   cam: OrthographicCameraProps,
   renderer_data: RendererData
 ) => {
   const { width, height } = renderer_data;
 
   const { frustumSize, projection, view, eye, target, up, near, far } = cam;
-
-  if (!projection || !view) {
-    throw new Error("no projection or view");
-  }
 
   let aspectRatio = width / height;
 
@@ -23,16 +19,12 @@ export const OrthographicCameraSystemInit = (
   const top = frustumSize / 2;
 
   mat4.ortho(left, right, bottom, top, near, far, projection);
-  // mat4.perspective(1, aspectRatio, 0.01, 100, projection);
-
   mat4.lookAt(eye, target, up, view);
 
-  const updatedCam = { ...cam, projection, view };
-
-  return updatedCam;
+  return cam;
 };
 
-export const WriteCameraBuffer = (
+export const WriteCameraViewAndProjBuffer = (
   cam: OrthographicCameraProps,
   storage: StorageManager,
   projectionViewBuffer: StorageRef<typeof BuffersManager>,

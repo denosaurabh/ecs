@@ -15,21 +15,21 @@ import {
   createGeneralBindGroup,
 } from "../shared";
 
-export const RunIsometricCameraPan = async () => {
+export const RunGroundRender = async () => {
   const storage = new StorageManager();
 
   const { timeBuffer, projectionViewBuffer, generalBindGroup } =
     createGeneralBindGroup(storage);
 
   // data
-  const BoxTransform = new Transform().translate(0, 0, 0).scale(2, 2, 2);
+  const BoxTransform = new Transform().translate(0, 0, 0).scale(10, 0.1, 10);
 
   const BoxBindGroup = storage.bindGroups.add({
     label: "box bind group",
     entries: [BoxTransform.getBindingEntry(storage.buffers)],
   });
 
-  const { geometryRef, vertexCount } = GEOMETRY.CUBE(storage);
+  const { geometryRef, vertexCount, data: cubeData } = GEOMETRY.CUBE(storage);
   const BoxRenderPass: RenderPass = {
     label: "BOX",
     outputAttachments: [],
@@ -74,13 +74,15 @@ export const RunIsometricCameraPan = async () => {
     OrthographicCamera,
     rendererData
   );
-
   WriteCameraViewAndProjBuffer(
     OrthographicCamera,
     storage,
     projectionViewBuffer,
     rendererData
   );
+
+  // write buffers
+  storage.vertexBuffers.write(geometryRef, cubeData, rendererData.device);
 
   const loop = () => {
     UpdateTime(storage, timeBuffer, rendererData);
