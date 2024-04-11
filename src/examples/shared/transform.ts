@@ -1,14 +1,15 @@
-import { mat4, Mat4, Vec3 } from "wgpu-matrix";
-import { BufferManager, BuffersManager } from "../storage/buffer";
-import { StorageRef } from "../storage/types";
-import { BindGroupEntry, BindGroupEntryType } from "../storage/bindgroup";
+import { mat4, Vec3 } from "wgpu-matrix";
+
+import { StorageRef, BindGroupEntryType, BuffersManager } from "./storage";
+import { BufferManager } from "./storage/buffer";
+import { BindGroupEntry } from "./storage/bindgroup";
 
 export class Transform {
-  _translate: Vec3;
-  _rotate: Vec3;
-  _scale: Vec3;
+  private _translate: Vec3;
+  private _rotate: Vec3;
+  private _scale: Vec3;
 
-  ref: StorageRef<typeof BuffersManager> | undefined;
+  private ref: StorageRef<typeof BuffersManager> | undefined;
 
   constructor() {
     this._translate = [0, 0, 0];

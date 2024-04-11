@@ -96,6 +96,10 @@ export class VertexBufferManager {
       throw new Error(`Vertex with ref ${ref.id} does not exist`);
     }
 
+    if (val.buffer) {
+      return val.buffer;
+    }
+
     const buffer = device.createBuffer(val.descriptor);
     this.vertex.set(ref.id, { ...val, buffer });
 
@@ -109,7 +113,7 @@ export class VertexBufferManager {
     }
 
     if (!value.buffer) {
-      throw new Error(`Buffer with ref ${ref.id} does not exist`);
+      return device.queue.writeBuffer(this.createBuffer(ref, device), 0, data);
     }
 
     device.queue.writeBuffer(value.buffer, 0, data);

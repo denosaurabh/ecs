@@ -7,7 +7,7 @@
     <title>Lighting</title>
   </head>
   <body>
-    <div id="app">
+    <div id="app" class="w-screen h-screen">
       <canvas></canvas>
 
       <p
@@ -16,6 +16,16 @@
       >
         0.0
       </p>
+
+      <select
+        id="select_demo"
+        class="absolute top-2 right-2 bg-black/80 text-white/90 font-mono py-2 px-2.5 pr-4"
+      >
+        <option value="select">Select</option>
+        <option value="triangle">Triangle</option>
+        <option value="isometric_pan">Isometric movement & pan</option>
+        <option value="outlines">Outlines</option>
+      </select>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

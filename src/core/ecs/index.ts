@@ -1,3 +1,4 @@
+import { StorageManager } from "@storage";
 import { nanoid } from "nanoid";
 
 /* ****************************************************************************************************************** */
@@ -152,6 +153,7 @@ export class World {
   private resources: Map<string, ECSResource<unknown>> = new Map();
 
   private queryManager = new Query(this);
+  private storageManager = new StorageManager();
 
   spawn(...components: Array<Array<Component<unknown>> | Component<unknown>>) {
     let mapIds: string[] = [];
@@ -198,6 +200,10 @@ export class World {
 
   get query(): Pick<Query, "exact" | "have"> {
     return this.queryManager;
+  }
+
+  get storage() {
+    return this.storageManager;
   }
 
   // resources

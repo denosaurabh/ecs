@@ -1,44 +1,29 @@
-import { FinalRenderPassComponent, RenderPassComponent } from "@3d/components";
-import { renderer_data } from "@3d/resources";
-import { World } from "@ecs";
 import {
   FinalDraw,
   FinalOutputAttachment,
   FinalRenderPass,
   RenderPass,
-} from "@rendergraph";
+} from "../rendergraph";
 import {
   BuffersManager,
   SamplersManager,
   StorageManager,
   StorageRef,
   TexturesManager,
-} from "@storage";
+} from "../storage";
+import { RendererData } from "./init";
 
-export const Prepare = (world: World) => {
-  const { storage } = world;
-
-  const renderPassEntities = world.query.exact(RenderPassComponent);
-
-  const { device, context, format } = renderer_data.get()!;
-
-  if (!device || !context || !format) {
-    throw new Error("no device or context");
-  }
+export const Prepare = (
+  renderPasses: RenderPass[],
+  rendererData: RendererData,
+  storage: StorageManager
+) => {
+  const { device, format } = rendererData;
 
   const finalRenderGraph: FinalRenderPass[] = [];
 
   let i = 0;
-  for (const entity of renderPassEntities) {
-    const [_id, components] = entity;
-    const renderPassComp = components.get(RenderPassComponent.factoryId);
-
-    if (!renderPassComp) {
-      throw new Error("no render pass");
-    }
-
-    const renderPass: RenderPass = renderPassComp.get();
-
+  for (const renderPass of renderPasses) {
     const outputAttachments: FinalOutputAttachment[] =
       renderPass.outputAttachments.map((attachment) => ({
         texture: storage.textures.createTexture(attachment.texture, device),
@@ -143,13 +128,7 @@ export const Prepare = (world: World) => {
     i++;
   }
 
-  console.log("finalRenderGraph", finalRenderGraph);
-
-  world.spawn(
-    ...finalRenderGraph.map((renderPass) =>
-      FinalRenderPassComponent(renderPass)
-    )
-  );
+  return finalRenderGraph;
 };
 
 function getBindingResource(

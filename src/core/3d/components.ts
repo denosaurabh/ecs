@@ -1,73 +1,33 @@
 import { component } from "@ecs";
+import { FinalRenderPass, RenderPass } from "@rendergraph";
+import { Mat4, mat4 } from "wgpu-matrix";
 
-type Translate = [number, number, number];
-type Rotate = [number, number, number, number];
-type Scale = [number, number, number];
-
-type OrthographicCameraProps = {
-  translation: Translate;
-  target: Translate;
-
+export type OrthographicCameraProps = {
+  frustumSize: number;
   near?: number;
   far?: number;
 
-  left?: number;
-  right?: number;
-  top?: number;
-  bottom?: number;
+  eye: [number, number, number];
+  target: [number, number, number];
+  up?: [number, number, number];
 
-  name?: string;
+  projection?: Mat4;
+  view?: Mat4;
 };
 
-export const OrthographicCamera = component<OrthographicCameraProps>(
-  "OrthographicCamera",
+export const OrthographicCameraComponent = component<OrthographicCameraProps>(
+  "OrthographicCameraComponent",
   {
-    near: 0.001,
+    near: 0.01,
     far: 1000,
 
-    left: 0,
-    right: 0,
-    top: window.innerWidth,
-    bottom: window.innerHeight,
+    up: [0, 1, 0],
+
+    projection: mat4.create(),
+    view: mat4.create(),
   }
 );
 
-// mesh
-type GeometryProps = {
-  verticies: Float32Array;
-  vertexCount: number;
-
-  usage: number; // GPUBufferUsage
-
-  lengthPerVertex: number;
-  verticiesCount: number;
-
-  attributes: Array<{
-    type: "POSITION" | "NORMAL" | "UV" | "CUSTOM";
-    offset: number;
-    format: GPUVertexFormat;
-  }>;
-};
-
-type MaterialProps = {
-  shader: string;
-
-  vertexEntryPoint: string;
-  fragmentEntryPoint: string;
-};
-
-export const Mesh = component<{
-  geometry: GeometryProps;
-  material: MaterialProps;
-
-  translate?: Translate;
-  rotate?: Rotate;
-  scale?: Scale;
-}>("Mesh", {
-  translate: [0, 0, 0],
-  rotate: [0, 0, 0, 1],
-  scale: [1, 1, 1],
-});
-
-// export const Material = component<MaterialProps>();
-// export const Geometry = component<GeometryProps>();
+export const RenderPassComponent = component<RenderPass>("RenderPass");
+export const FinalRenderPassComponent =
+  component<FinalRenderPass>("FinalRenderPass");
