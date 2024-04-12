@@ -50,8 +50,8 @@ export const Init = async (): Promise<RendererData> => {
   context?.configure({
     device,
     format,
-    colorSpace: "srgb",
-    alphaMode: "opaque",
+    // colorSpace: "srgb",
+    alphaMode: "premultiplied",
   });
 
   const data = {

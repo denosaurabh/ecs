@@ -57,6 +57,7 @@ export class BindGroupManager {
 
     const layoutDescriptor = {
       label: data.label,
+
       entries: data.entries.map((entry, i) => {
         const { __TYPE, ...typeProps } = entry.type;
 
@@ -78,6 +79,7 @@ export class BindGroupManager {
   createBindGroup(
     ref: Ref,
     resources: GPUBindingResource[],
+    // descriptor: GPUBindGroupDescriptor,
     device: GPUDevice
   ) {
     const bindGroup = this.bindGroups.get(ref.id);
@@ -91,15 +93,19 @@ export class BindGroupManager {
 
     const layout = bindGroup.layout || this.createLayout(ref, device);
 
-    const bindGroupInstance = device.createBindGroup({
-      layout,
-      entries: resources.map((resource, i) => {
-        return {
-          binding: i,
-          resource,
-        };
-      }),
-    });
+    const bindGroupInstance = device.createBindGroup(
+      {
+        label: bindGroup.data.label,
+        layout,
+        entries: resources.map((resource, i) => {
+          return {
+            binding: i,
+            resource,
+          };
+        }),
+      }
+      // descriptor
+    );
 
     this.bindGroups.set(ref.id, { ...bindGroup, bindGroup: bindGroupInstance });
 

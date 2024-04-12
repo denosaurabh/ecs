@@ -10,7 +10,8 @@ type TexureProps = {
 };
 
 type TextureMapValue = {
-  texture: GPUTextureDescriptor;
+  textureDescriptor: GPUTextureDescriptor;
+  gpuTexture?: GPUTexture;
 };
 
 export const TexturesManager = "TEXTURES" as const;
@@ -33,7 +34,7 @@ export class TextureManager {
       usage: textureProps.usage,
     };
 
-    this.textures.set(name, { texture });
+    this.textures.set(name, { textureDescriptor: texture });
 
     return this.ref(name);
   }
@@ -50,7 +51,16 @@ export class TextureManager {
   // device
   createTexture(ref: Ref, device: GPUDevice): GPUTexture {
     const texture = this.get(ref);
-    return device.createTexture(texture.texture);
+
+    if (texture.gpuTexture) {
+      return texture.gpuTexture;
+    }
+
+    const gpuTexture = device.createTexture(texture.textureDescriptor);
+
+    this.textures.set(ref.id, { ...texture, gpuTexture });
+
+    return gpuTexture;
   }
 
   // internal

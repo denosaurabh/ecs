@@ -1,5 +1,8 @@
+import { RunDepth } from "./depth";
 import { RunGroundRender } from "./ground-render";
 import { RunIsometricCameraPan } from "./isometric-camera-pan";
+import { RunSimplePostprocessing } from "./postprocessing";
+import { RunSimpleMultiPipeline } from "./simple-multi-pipeline";
 import { RunTriangle } from "./triangle";
 
 let cleanup: () => void;
@@ -47,6 +50,18 @@ async function setDemo(demo: string) {
     }
     case "#ground": {
       cleanup = await RunGroundRender();
+      break;
+    }
+    case "#simple-multi-pipeline": {
+      cleanup = await RunSimpleMultiPipeline();
+      break;
+    }
+    case "#simple-postprocess": {
+      cleanup = await RunSimplePostprocessing();
+      break;
+    }
+    case "#depth": {
+      cleanup = await RunDepth();
       break;
     }
     case "#isometric_pan": {

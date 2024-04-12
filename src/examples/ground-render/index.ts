@@ -36,7 +36,7 @@ export const RunGroundRender = async () => {
     pipelines: [
       {
         label: "box render",
-        shader: MATERIAL.SOLID_COLOR(storage).materialRef,
+        shader: MATERIAL.NORMAL_COLOR(storage).materialRef,
         bindGroups: [generalBindGroup, BoxBindGroup],
         vertexBufferLayouts: [geometryRef],
         draw: [
@@ -84,11 +84,12 @@ export const RunGroundRender = async () => {
   // write buffers
   storage.vertexBuffers.write(geometryRef, cubeData, rendererData.device);
 
+  let animationId: number;
   const loop = () => {
     UpdateTime(storage, timeBuffer, rendererData);
     Render(renderGraph, rendererData);
 
-    requestAnimationFrame(() => {
+    animationId = requestAnimationFrame(() => {
       loop();
     });
   };
@@ -98,5 +99,9 @@ export const RunGroundRender = async () => {
   // cleanup
   return () => {
     rendererData.device.destroy();
+
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+    }
   };
 };

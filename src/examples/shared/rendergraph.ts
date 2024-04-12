@@ -10,7 +10,22 @@ export type RenderPass = {
   label?: string;
 
   outputAttachments: OutputAttachment[];
+  depthStencilAttachment?: DepthStencilAttachment;
+
   pipelines: Pipeline[];
+};
+
+type DepthStencilAttachment = {
+  view: StorageRef<typeof TexturesManager>;
+
+  depthClearValue?: number;
+  depthLoadOp?: GPULoadOp;
+  depthStoreOp?: GPUStoreOp;
+  depthReadOnly?: boolean;
+  stencilClearValue?: GPUStencilValue;
+  stencilLoadOp?: GPULoadOp;
+  stencilStoreOp?: GPUStoreOp;
+  stencilReadOnly?: boolean;
 };
 
 type OutputAttachment = {
@@ -24,12 +39,22 @@ type OutputAttachment = {
 type Pipeline = {
   label?: string;
 
+  disabled?: boolean;
+
   bindGroups: StorageRef<typeof BindgroupManager>[];
   shader: StorageRef<typeof ShadersManager>;
 
   vertexBufferLayouts: StorageRef<typeof VertexBuffersManager>[]; // VertexBufferLayout
 
   draw: Draw[];
+
+  removeDefaultTarget?: boolean;
+  targets?: GPUColorTargetState[];
+  settings?: {
+    topology?: GPUPrimitiveTopology;
+    cullMode?: GPUCullMode;
+    depthStencil?: GPUDepthStencilState;
+  };
 };
 
 type Draw = {
@@ -39,13 +64,30 @@ type Draw = {
   instanceCount?: number;
 };
 
-/* ****************  FINAL  **************** */
+/* ****************  RENDER GRAPH  **************** */
 export type FinalRenderPass = {
   outputAttachments: FinalOutputAttachment[];
+  depthStencilAttachment?: FinalDepthStencilAttachment;
+
   pipelines: Array<{
     pipeline: GPURenderPipeline;
     draw: FinalDraw[];
+
+    disabled?: boolean;
   }>;
+};
+
+type FinalDepthStencilAttachment = {
+  view: GPUTexture;
+
+  depthClearValue?: number;
+  depthLoadOp?: GPULoadOp;
+  depthStoreOp?: GPUStoreOp;
+  depthReadOnly?: boolean;
+  stencilClearValue?: GPUStencilValue;
+  stencilLoadOp?: GPULoadOp;
+  stencilStoreOp?: GPUStoreOp;
+  stencilReadOnly?: boolean;
 };
 
 export type FinalOutputAttachment = {
@@ -63,3 +105,8 @@ export type FinalDraw = {
   vertexCount: number;
   instanceCount: number;
 };
+
+/* ********************************************************************************************************************** */
+/* ********************************************************************************************************************** */
+/* ********************************************************************************************************************** */
+/* ********************************************************************************************************************** */

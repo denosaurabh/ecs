@@ -45,10 +45,11 @@ export const RunTriangle = async () => {
 
   storage.vertexBuffers.write(geometryRef, geometryData, rendererData.device);
 
+  let animationId: number;
   const loop = () => {
     Render(renderGraph, rendererData);
 
-    requestAnimationFrame(() => {
+    animationId = requestAnimationFrame(() => {
       loop();
     });
   };
@@ -58,5 +59,7 @@ export const RunTriangle = async () => {
   // cleanup
   return () => {
     rendererData.device.destroy();
+
+    animationId && cancelAnimationFrame(animationId);
   };
 };

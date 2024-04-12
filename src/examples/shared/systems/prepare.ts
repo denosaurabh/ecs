@@ -34,18 +34,28 @@ export const Prepare = (
 
     const finalRenderPass: FinalRenderPass = {
       outputAttachments,
+      depthStencilAttachment: renderPass.depthStencilAttachment
+        ? {
+            ...renderPass.depthStencilAttachment,
+            view: storage.textures.createTexture(
+              renderPass.depthStencilAttachment.view,
+              device
+            ),
+          }
+        : undefined,
       pipelines: [], // will be updated in loop
     };
 
     for (const pipeline of renderPass.pipelines) {
-      const bindGroupsLayouts: GPUBindGroupLayout[] = pipeline.bindGroups.map(
+      const bindGroupLayouts: GPUBindGroupLayout[] = pipeline.bindGroups.map(
         (bindGroup) => {
           return storage.bindGroups.createLayout(bindGroup, device);
         }
       );
 
       const pipelineLayout = device.createPipelineLayout({
-        bindGroupLayouts: bindGroupsLayouts,
+        label: "__pipeline_layout" + pipeline.label,
+        bindGroupLayouts,
       });
 
       const shaderCode = storage.shaders.get(pipeline.shader);
@@ -57,6 +67,18 @@ export const Prepare = (
       const vertexBufferLayouts = pipeline.vertexBufferLayouts.map((vb) =>
         storage.vertexBuffers.getLayout(vb)
       );
+
+      const targets: GPUColorTargetState[] = [];
+
+      if (pipeline.targets) {
+        targets.push(...pipeline.targets);
+      }
+
+      if (!pipeline.removeDefaultTarget) {
+        targets.unshift({
+          format,
+        });
+      }
 
       const renderPipelineDescriptor: GPURenderPipelineDescriptor = {
         label: pipeline.label,
@@ -72,36 +94,45 @@ export const Prepare = (
           module: shaderModule,
           entryPoint: shaderCode.fragFn,
 
-          targets: [
-            {
-              format,
-            },
-          ],
+          targets,
         },
         primitive: {
-          topology: "triangle-list",
-          cullMode: "back",
+          topology: pipeline.settings?.topology || "triangle-list",
+          cullMode: pipeline.settings?.cullMode || "back",
         },
+
+        depthStencil: pipeline.settings?.depthStencil,
       };
 
       const gpuPipeline = device.createRenderPipeline(renderPipelineDescriptor);
 
       const gpuBindGroups: GPUBindGroup[] = pipeline.bindGroups.map(
-        (bindGroup, i) => {
-          const bindGroupVal = storage.bindGroups.get(bindGroup);
+        (
+          bindGroupRef
+          // i
+        ) => {
+          const bindGroupVal = storage.bindGroups.get(bindGroupRef);
 
-          const bindDescriptor: GPUBindGroupDescriptor = {
-            layout: bindGroupsLayouts[i],
-            entries: bindGroupVal.data.entries.map(
-              (entry, ei) =>
-                <GPUBindGroupEntry>{
-                  binding: ei,
-                  resource: getBindingResource(entry.resource, storage, device),
-                }
+          // const bindDescriptor: GPUBindGroupDescriptor = {
+          //   label: "__gpubindgroup " + bindGroupVal.data.label,
+          //   layout: bindGroupLayouts[i],
+          //   entries: bindGroupVal.data.entries.map(
+          //     (entry, ei) =>
+          //       <GPUBindGroupEntry>{
+          //         binding: ei,
+          //         resource: getBindingResource(entry.resource, storage, device),
+          //       }
+          //   ),
+          // };
+
+          return storage.bindGroups.createBindGroup(
+            bindGroupRef,
+            // bindDescriptor,
+            bindGroupVal.data.entries.map((entry) =>
+              getBindingResource(entry.resource, storage, device)
             ),
-          };
-
-          return device.createBindGroup(bindDescriptor);
+            device
+          );
         }
       );
 
@@ -118,6 +149,7 @@ export const Prepare = (
       });
 
       finalRenderPass.pipelines.push({
+        disabled: pipeline.disabled,
         pipeline: gpuPipeline,
         draw: drawCommands,
       });

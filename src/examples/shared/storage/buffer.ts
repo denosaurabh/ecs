@@ -70,6 +70,10 @@ export class BufferManager {
       throw new Error(`Vertex with ref ${ref.id} does not exist`);
     }
 
+    if (val.buffer) {
+      return val.buffer;
+    }
+
     const buffer = device.createBuffer(val.descriptor);
     this.vertex.set(ref.id, { ...val, buffer });
 

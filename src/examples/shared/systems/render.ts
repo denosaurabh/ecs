@@ -1,13 +1,11 @@
-import { FinalRenderPass } from "@rendergraph";
+import { FinalRenderPass } from "../rendergraph";
 import { RendererData } from "./init";
 
 export const Render = (
-  finalRenderGraphs: FinalRenderPass[],
+  renderGraph: FinalRenderPass[],
   rendererData: RendererData
 ) => {
   const { device, context } = rendererData;
-
-  const finalRenderGraph = finalRenderGraphs[finalRenderGraphs.length - 1];
 
   const encoder = device.createCommandEncoder();
 
@@ -16,52 +14,81 @@ export const Render = (
       view: context.getCurrentTexture().createView(),
       loadOp: "clear",
       storeOp: "store",
-      clearValue: { r: 0.1, g: 0.1, b: 0.1, a: 1 },
+      clearValue: { r: 0.1, g: 0.1, b: 0.1, a: 1.0 },
     },
   ];
 
-  let i = 0;
-  for (const renderPass of finalRenderGraph.pipelines) {
-    const isFinalRenderPass = i === finalRenderGraphs.length - 1;
+  let renderPassIndex = 0;
+  for (const renderPass of renderGraph) {
+    let pipelineIndex = 0;
+
+    const isFinalRenderPass = renderPassIndex === renderGraph.length - 1;
 
     const renderPassOutputAttachments: GPURenderPassColorAttachment[] =
-      finalRenderGraph.outputAttachments.map((attachment) => ({
+      renderPass.outputAttachments.map((attachment) => ({
         view: attachment.texture.createView(),
 
         loadOp: attachment.loadOp,
         storeOp: attachment.storeOp,
 
-        clearValue: attachment.clearValue || {
-          r: 0.1,
-          g: 0.1,
-          b: 0.1,
-          a: 1.0,
-        },
+        clearValue: attachment.clearValue,
       }));
 
-    const pass = encoder.beginRenderPass({
-      colorAttachments: isFinalRenderPass
+    const depthStencilAttachment:
+      | GPURenderPassDepthStencilAttachment
+      | undefined = renderPass.depthStencilAttachment
+      ? {
+          ...renderPass.depthStencilAttachment,
+          view: renderPass.depthStencilAttachment.view.createView({
+            format: "depth24plus",
+            dimension: "2d",
+            aspect: "all",
+            arrayLayerCount: 1,
+            label: "depth stencil view",
+          }),
+        }
+      : undefined;
+
+    const colorAttachments =
+      isFinalRenderPass && renderPassOutputAttachments.length === 0
         ? finalColorAttachments
-        : renderPassOutputAttachments,
+        : renderPassOutputAttachments;
+
+    const pass = encoder.beginRenderPass({
+      colorAttachments,
+      depthStencilAttachment,
     });
 
-    pass.setPipeline(renderPass.pipeline);
+    for (const renderPipeline of renderPass.pipelines) {
+      // const isFinalPipeline =
+      //   pipelineIndex === renderPass.pipelines.length - 1 &&
+      //   renderPassIndex === renderGraph.length - 1;
 
-    for (const draw of renderPass.draw) {
-      for (let i = 0; i < draw.vertexBuffers.length; i++) {
-        pass.setVertexBuffer(i, draw.vertexBuffers[i]);
+      if (renderPipeline.disabled) {
+        pipelineIndex++;
+        continue;
       }
 
-      for (let i = 0; i < draw.bindGroups.length; i++) {
-        pass.setBindGroup(i, draw.bindGroups[i]);
+      pass.setPipeline(renderPipeline.pipeline);
+
+      for (const draw of renderPipeline.draw) {
+        for (let i = 0; i < draw.vertexBuffers.length; i++) {
+          pass.setVertexBuffer(i, draw.vertexBuffers[i]);
+        }
+
+        for (let i = 0; i < draw.bindGroups.length; i++) {
+          pass.setBindGroup(i, draw.bindGroups[i]);
+        }
+
+        pass.draw(draw.vertexCount, draw.instanceCount);
       }
 
-      pass.draw(draw.vertexCount, draw.instanceCount);
+      pipelineIndex++;
     }
 
     pass.end();
 
-    i++;
+    renderPassIndex++;
   }
 
   device.queue.submit([encoder.finish()]);

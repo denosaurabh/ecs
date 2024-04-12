@@ -1,12 +1,8 @@
-// struct Uniforms {
-//     projectionViewMatrix : mat4x4f,
-// }
-
-// @binding(0) @group(0) var<uniform> uniforms : Uniforms;
 @group(0) @binding(0) var<uniform> time : f32;
 @group(0) @binding(1) var<uniform> projectionView : mat4x4f;
   
 @group(1) @binding(0) var<uniform> modelMat : mat4x4f;
+@group(1) @binding(1) var<uniform> uniformColor : vec3f;
 
 struct VertexOutput {
     @builtin(position) Position : vec4f,
@@ -20,9 +16,11 @@ fn vertexMain(
     @location(2) uv : vec2f
 ) -> VertexOutput {
     var output : VertexOutput;
-    output.Position =  projectionView * modelMat * position;
+    output.Position =  projectionView * modelMat * position; // + (time * 0.1)
 
-    output.color = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
+    // output.color = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
+    // output.color = vec4(0.5, 0.0, 0.0, 0.1);
+    output.color = vec4(uniformColor, 1.0);
 
     return output;
 }
@@ -34,6 +32,8 @@ fn fragMain(
     return color;
     // return vec4f(1.0, 0.0, 0.0, 1.0);
 }
+
+fn rand11(n: f32) -> f32 { return fract(sin(n) * 43758.5453123); }
 
 
 /*
