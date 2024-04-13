@@ -42,6 +42,7 @@ export class BufferManager {
       label,
       data,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      writeAtCreation: true,
     });
   }
 

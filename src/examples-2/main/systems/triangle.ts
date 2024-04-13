@@ -4,7 +4,7 @@ import { Geometry } from "../../core";
 let pipeline: GPURenderPipeline;
 let triangle: Geometry;
 
-export const SetupTriangle = ({ geometry, material, storage }: World) => {
+export const Triangle = ({ geometry, material, storage }: World) => {
   triangle = geometry.TRIANGE();
   const simpleMaterial = material.SIMPLE;
 
@@ -13,10 +13,11 @@ export const SetupTriangle = ({ geometry, material, storage }: World) => {
     shader: simpleMaterial,
     vertexBufferLayouts: [triangle.layout],
   });
-};
 
-export const DrawTriangle = (pass: GPURenderPassEncoder) => {
-  pass.setPipeline(pipeline);
-  pass.setVertexBuffer(0, triangle.buffer);
-  pass.draw(triangle.vertexCount);
+  // render
+  return (pass: GPURenderPassEncoder) => {
+    pass.setPipeline(pipeline);
+    pass.setVertexBuffer(0, triangle.buffer);
+    pass.draw(triangle.vertexCount);
+  };
 };

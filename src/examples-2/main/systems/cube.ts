@@ -60,10 +60,8 @@ class CubesFactory {
   }
 }
 
-let cubes: CubesFactory;
-
-export const SetupCube = (world: World) => {
-  cubes = new CubesFactory(world);
+export const Cubes = (world: World) => {
+  const cubes = new CubesFactory(world);
 
   cubes.new(
     new Transform(world.storage.buffers).translate(0, 0, 0).scale(1, 1, 1)
@@ -71,21 +69,8 @@ export const SetupCube = (world: World) => {
   cubes.new(
     new Transform(world.storage.buffers).translate(0, 5, 0).scale(1, 1, 1)
   );
-};
 
-export const DrawCube = (pass: GPURenderPassEncoder, world: World) => {
-  // rotate
-  // transform.rotateY(globalBindGroup.time.data);
-
-  // pipeline
-  // pass.setPipeline(pipeline);
-
-  // pass.setVertexBuffer(0, cube.buffer);
-
-  // pass.setBindGroup(0, globalBindGroup.bindGroup);
-  // pass.setBindGroup(1, bindGroup);
-
-  // pass.draw(cube.vertexCount);
-
-  cubes.render(pass, world);
+  return (pass: GPURenderPassEncoder) => {
+    cubes.render(pass, world);
+  };
 };

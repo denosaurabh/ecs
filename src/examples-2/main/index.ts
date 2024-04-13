@@ -11,8 +11,8 @@ import {
 
 import { Init, RendererData } from "./systems/init";
 
-import { SetupTriangle, DrawTriangle } from "./systems/triangle";
-import { SetupCube, DrawCube } from "./systems/cube";
+import { Triangle } from "./systems/triangle";
+import { Cubes } from "./systems/cube";
 
 const renderer = await Init();
 const { device, context } = renderer;
@@ -53,8 +53,8 @@ const world: World = {
 };
 
 // systems
-SetupTriangle(world);
-SetupCube(world);
+const renderTriangles = Triangle(world);
+const renderCubes = Cubes(world);
 
 // loop
 const loop = () => {
@@ -64,6 +64,9 @@ const loop = () => {
   world.globals.camera = updatedOrthoCam;
   WriteCameraBuffer(world);
 
+  /**
+   * COMMAND ENCODER
+   */
   const encoder = device.createCommandEncoder();
 
   const pass = encoder.beginRenderPass({
@@ -77,8 +80,8 @@ const loop = () => {
     ],
   });
 
-  DrawTriangle(pass);
-  DrawCube(pass, world);
+  renderTriangles(pass);
+  renderCubes(pass);
 
   pass.end();
 
