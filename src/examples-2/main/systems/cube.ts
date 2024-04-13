@@ -31,6 +31,7 @@ class CubesFactory {
         bindGroups: [globalBindGroup.layout, bindGroupLayout],
       },
       shader: mat,
+      depthStencil: "depth24plus|less|true",
       vertexBufferLayouts: [this.cube.layout],
     });
 
@@ -63,14 +64,20 @@ class CubesFactory {
 export const Cubes = (world: World) => {
   const cubes = new CubesFactory(world);
 
-  cubes.new(
-    new Transform(world.storage.buffers).translate(0, 0, 0).scale(1, 1, 1)
-  );
-  cubes.new(
-    new Transform(world.storage.buffers).translate(0, 5, 0).scale(1, 1, 1)
-  );
+  const cube = new Transform(world.storage.buffers)
+    .translate(0, 2, 0)
+    .scale(1, 1, 1);
+
+  const ground = new Transform(world.storage.buffers)
+    .translate(0, 0, 0)
+    .scale(10, 0.1, 10);
+
+  cubes.new(cube);
+  cubes.new(ground);
 
   return (pass: GPURenderPassEncoder) => {
+    cube.rotateY(world.globals.globalBindGroup.time.data);
+
     cubes.render(pass, world);
   };
 };

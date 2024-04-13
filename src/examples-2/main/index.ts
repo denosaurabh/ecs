@@ -15,7 +15,7 @@ import { Triangle } from "./systems/triangle";
 import { Cubes } from "./systems/cube";
 
 const renderer = await Init();
-const { device, context } = renderer;
+const { device, context, width, height } = renderer;
 
 const storage = new StorageManager(device);
 
@@ -52,6 +52,18 @@ const world: World = {
   },
 };
 
+const depthTexture = storage.textures.create({
+  size: [width, height],
+  format: "depth24plus",
+
+  depthOrArrayLayers: 1,
+
+  usage:
+    GPUTextureUsage.COPY_DST |
+    GPUTextureUsage.TEXTURE_BINDING |
+    GPUTextureUsage.RENDER_ATTACHMENT,
+});
+
 // systems
 const renderTriangles = Triangle(world);
 const renderCubes = Cubes(world);
@@ -78,9 +90,15 @@ const loop = () => {
         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
       },
     ],
+    depthStencilAttachment: {
+      view: depthTexture.createView(),
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+      depthClearValue: 1.0,
+    },
   });
 
-  renderTriangles(pass);
+  // renderTriangles(pass);
   renderCubes(pass);
 
   pass.end();
