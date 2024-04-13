@@ -1,7 +1,6 @@
-import { Mat4, mat4, Vec3 } from "wgpu-matrix";
-
-import { StorageRef, BindGroupEntryType, BuffersManager } from "./storage";
+import { mat4, Vec3 } from "wgpu-matrix";
 import { BufferManager } from "./storage/buffer";
+import { BindGroupEntryType } from "./storage";
 import { BindGroupEntry } from "./storage/bindgroup";
 
 export class Transform {
@@ -9,45 +8,56 @@ export class Transform {
   private _rotate: Vec3;
   private _scale: Vec3;
 
-  private hardcoded_mat4: Mat4 | undefined;
+  private buffer: GPUBuffer;
 
-  private ref: StorageRef<typeof BuffersManager> | undefined;
-
-  constructor() {
+  constructor(private bufferManager: BufferManager) {
     this._translate = [0, 0, 0];
     this._rotate = [0, 0, 0];
     this._scale = [1, 1, 1];
+
+    this.buffer = bufferManager.createUniform(
+      this.getFloat32Array(),
+      "Transform"
+    );
   }
 
   translate(x: number, y: number, z: number) {
     this._translate = [x, y, z];
+    this.writeBuffer();
+
     return this;
   }
 
   scale(x: number, y: number, z: number) {
     this._scale = [x, y, z];
+    this.writeBuffer();
+
     return this;
   }
 
   rotateX(rad: number) {
     this._rotate[0] = rad;
+    this.writeBuffer();
+
     return this;
   }
 
   rotateY(rad: number) {
     this._rotate[1] = rad;
+    this.writeBuffer();
+
     return this;
   }
 
   rotateZ(rad: number) {
     this._rotate[2] = rad;
+    this.writeBuffer();
+
     return this;
   }
 
   // data
   getFloat32Array(): Float32Array {
-    if (this.hardcoded_mat4) return this.hardcoded_mat4 as Float32Array;
-
     const finalMatrix = mat4.identity();
 
     mat4.scale(finalMatrix, this._scale, finalMatrix);
@@ -59,55 +69,27 @@ export class Transform {
     return finalMatrix as Float32Array;
   }
 
-  getStorageBuffer(
-    bufferManager: BufferManager
-  ): StorageRef<typeof BuffersManager> {
-    const ref = bufferManager.add({
-      size: this.size,
-      usage: this.usage,
-
-      data: this.getFloat32Array(),
-
-      label: "Transform",
-
-      writeOnCreation: true,
-    });
-
-    this.ref = ref;
-
-    return ref;
+  getBindingEntry(bufferManager: BufferManager): BindGroupEntry {
+    return {
+      ...Transform.bindingEntryLayout,
+      resource: bufferManager.getBindingResource(this.buffer),
+    };
   }
 
-  getBindingEntry(bufferManager: BufferManager): BindGroupEntry {
-    if (!this.ref) {
-      this.getStorageBuffer(bufferManager);
-    }
+  // write
+  writeBuffer() {
+    this.bufferManager.write(this.buffer, this.getFloat32Array());
+  }
 
-    if (!this.ref) throw new Error("Transform ref is not defined!");
-
+  static get bindingEntryLayout() {
     return {
       visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-      resource: this.ref,
       type: BindGroupEntryType.buffer({
         type: "uniform",
         minBindingSize: 64,
         hasDynamicOffset: false,
       }),
     };
-  }
-
-  // write
-  writeBuffer(bufferManager: BufferManager, device: GPUDevice) {
-    if (!this.ref) throw new Error("Transform ref is not defined!");
-
-    bufferManager.write(this.ref, this.getFloat32Array(), device);
-  }
-
-  hardcodeMat4(mat4: Mat4) {
-    // console.warn(
-    //   "a transform's mat4 has been hardcoded! only do this if you know what you're doing!"
-    // );
-    this.hardcoded_mat4 = mat4;
   }
 
   // gets

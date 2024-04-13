@@ -1,4 +1,4 @@
-import { mat4, Vec3, vec3 } from "wgpu-matrix";
+import { Mat4, mat4, Vec3, vec3 } from "wgpu-matrix";
 import {
   GEOMETRY,
   MATERIAL,
@@ -14,6 +14,7 @@ import {
   WriteCameraViewAndProjBuffer,
   createGeneralBindGroup,
 } from "../shared";
+import { BufferManager } from "../shared/storage/buffer";
 
 type ActiveKeys = {
   w: boolean;
@@ -55,60 +56,100 @@ export const RunIsometricCameraPan = async () => {
     rotationSpeed: 0.002,
   };
 
-  // data
-  const GroundTransform = new Transform().translate(0, 0, 0).scale(5, 0.1, 5);
-  const GroundBindGroup = storage.bindGroups.add({
-    label: "box bind group",
-    entries: [GroundTransform.getBindingEntry(storage.buffers)],
+  const depthTexture = storage.textures.add({
+    size: [window.innerWidth, window.innerHeight],
+    format: "depth24plus",
+    // usage: GPUTextureUsage.RENDER_ATTACHMENT,
+
+    depthOrArrayLayers: 1,
+
+    usage:
+      GPUTextureUsage.COPY_DST |
+      GPUTextureUsage.TEXTURE_BINDING |
+      GPUTextureUsage.RENDER_ATTACHMENT,
   });
-  const { geometryRef, vertexCount, data: cubeData } = GEOMETRY.CUBE(storage);
-  const GroundRenderPass: RenderPass = {
-    label: "GROUND",
+
+  //BOX
+  const {
+    geometryRef: cubeGeoRef,
+    vertexCount: cubeVertexCount,
+    data: cubeData,
+  } = GEOMETRY.CUBE(storage);
+
+  const shaderRef = MATERIAL.NORMAL_COLOR(storage).materialRef;
+
+  const GroundTransform = new Transform().translate(0, 0, 0).scale(5, 0.1, 5);
+  const BoxTransform = new Transform().translate(0, 4, 0).scale(0.4, 0.4, 0.4);
+
+  const depthStencil: GPUDepthStencilState = {
+    depthWriteEnabled: true,
+    depthCompare: "less",
+    format: "depth24plus",
+  };
+
+  const SceneRenderPass: RenderPass = {
+    label: "BOX",
     outputAttachments: [],
+
+    depthStencilAttachment: {
+      view: depthTexture,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+      depthClearValue: 1.0,
+    },
+
     pipelines: [
       {
         label: "ground render",
-        shader: MATERIAL.UNIFORM_COLOR(storage).materialRef,
-        bindGroups: [generalBindGroup, GroundBindGroup],
-        vertexBufferLayouts: [geometryRef],
+        shader: shaderRef,
+        vertexBufferLayouts: [cubeGeoRef],
+        bindGroups: [
+          generalBindGroup,
+          storage.bindGroups.add({
+            label: "ground bind group",
+            entries: [GroundTransform.getBindingEntry(storage.buffers)],
+          }),
+        ],
+
         draw: [
           {
-            vertexBuffers: [geometryRef],
-            vertexCount: vertexCount,
+            vertexBuffers: [cubeGeoRef],
+            vertexCount: cubeVertexCount,
           },
         ],
+
+        settings: {
+          depthStencil,
+        },
+      },
+
+      {
+        label: "box render",
+        shader: shaderRef,
+        vertexBufferLayouts: [cubeGeoRef],
+        bindGroups: [
+          generalBindGroup,
+          storage.bindGroups.add({
+            label: "box bind group",
+            entries: [BoxTransform.getBindingEntry(storage.buffers)],
+          }),
+        ],
+
+        draw: [
+          {
+            vertexBuffers: [cubeGeoRef],
+            vertexCount: cubeVertexCount,
+          },
+        ],
+
+        settings: {
+          depthStencil,
+        },
       },
     ],
   };
 
-  const {
-    geometryRef: boxGeoRef,
-    vertexCount: boxVertexCount,
-    data: boxData,
-  } = GEOMETRY.CUBE(storage);
-  const BoxTransform = new Transform().translate(0, 0, 0).scale(5, 0.1, 5);
-  const BoxBindGroup = storage.bindGroups.add({
-    label: "box bind group",
-    entries: [BoxTransform.getBindingEntry(storage.buffers)],
-  });
-  const BoxRenderPass: RenderPass = {
-    label: "BOX",
-    outputAttachments: [],
-    pipelines: [
-      {
-        label: "box render",
-        shader: MATERIAL.UNIFORM_COLOR(storage).materialRef,
-        bindGroups: [generalBindGroup, BoxBindGroup],
-        vertexBufferLayouts: [boxGeoRef],
-        draw: [
-          {
-            vertexBuffers: [boxGeoRef],
-            vertexCount: boxVertexCount,
-          },
-        ],
-      },
-    ],
-  };
+  const renderPasses: RenderPass[] = [SceneRenderPass];
 
   // camera
   let OrthographicCamera: OrthographicCameraProps = {
@@ -126,8 +167,6 @@ export const RunIsometricCameraPan = async () => {
     view: mat4.create(),
   };
 
-  const renderPasses: RenderPass[] = [GroundRenderPass, BoxRenderPass];
-
   // SHARED
   const rendererData = await Init();
   const renderGraph = Prepare(renderPasses, rendererData, storage);
@@ -143,12 +182,16 @@ export const RunIsometricCameraPan = async () => {
   );
 
   // write buffers
-  storage.vertexBuffers.write(geometryRef, cubeData, rendererData.device);
-  storage.vertexBuffers.write(boxGeoRef, boxData, rendererData.device);
+  storage.vertexBuffers.write(cubeGeoRef, cubeData, rendererData.device);
 
   let animationId: number;
   const loop = () => {
     UpdateTime(storage, timeBuffer, rendererData);
+
+    UpdateCameraPosition(OrthographicCamera, activeKeys);
+    UpdateCameraOrbit(cameraRotateState);
+
+    AnimateBox(BoxTransform, storage.buffers, rendererData.device);
 
     Render(renderGraph, rendererData);
 
@@ -303,4 +346,49 @@ function UpdateCameraOrbit(
 
   return { ...state, test_eye };
   // return cam;
+}
+
+type BoxState = {
+  target: Vec3;
+  eye: Vec3;
+
+  mat4: Mat4;
+
+  rotation: number;
+
+  isDragging: boolean;
+  prevMouseX: number;
+  prevMouseY: number;
+  cameraRotationX: number;
+  cameraRotationY: number;
+  rotationSpeed: number;
+};
+
+let boxState: BoxState = {
+  target: vec3.fromValues(0, 0, 0),
+  eye: vec3.fromValues(0, 0, 0),
+
+  mat4: mat4.identity(),
+
+  rotation: 0.01,
+
+  isDragging: false,
+  prevMouseX: 0,
+  prevMouseY: 0,
+  cameraRotationX: 0,
+  cameraRotationY: 0,
+  rotationSpeed: 0.002,
+};
+
+function AnimateBox(
+  transform: Transform,
+  bufferManager: BufferManager,
+  device: GPUDevice
+) {
+  const { mat4: boxMat4 } = boxState;
+
+  mat4.setTranslation(boxMat4, [0, 2, 0], boxState.mat4);
+  transform.hardcodeMat4(boxState.mat4);
+
+  transform.writeBuffer(bufferManager, device);
 }
