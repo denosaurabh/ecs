@@ -1,5 +1,6 @@
 import { GEOMETRY_FACTORY, MATERIAL_FACTORY, StorageManager } from "../core";
 import {
+  CameraControl,
   createGlobalBindGroup,
   defaultOrthographicCamera,
   GlobalBindGroup,
@@ -11,7 +12,6 @@ import {
 
 import { Init, RendererData } from "./systems/init";
 
-import { Triangle } from "./systems/triangle";
 import { Cubes } from "./systems/cube";
 
 const renderer = await Init();
@@ -65,8 +65,11 @@ const depthTexture = storage.textures.create({
 });
 
 // systems
-const renderTriangles = Triangle(world);
+// const renderTriangles = Triangle(world);
 const renderCubes = Cubes(world);
+
+CameraControl(world);
+// const CharacterControlRender = CharacterControl(world);
 
 // loop
 const loop = () => {
@@ -74,6 +77,9 @@ const loop = () => {
 
   const updatedOrthoCam = OrthoCameraUpdateMatrices(world);
   world.globals.camera = updatedOrthoCam;
+
+  // CharacterControlRender();
+
   WriteCameraBuffer(world);
 
   /**

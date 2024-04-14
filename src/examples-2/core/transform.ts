@@ -56,15 +56,27 @@ export class Transform {
     return this;
   }
 
+  x() {
+    return this._translate[0];
+  }
+
+  y() {
+    return this._translate[1];
+  }
+
+  z() {
+    return this._translate[2];
+  }
+
   // data
   getFloat32Array(): Float32Array {
     const finalMatrix = mat4.identity();
 
     mat4.scale(finalMatrix, this._scale, finalMatrix);
+    mat4.translate(finalMatrix, this._translate, finalMatrix);
     mat4.rotateX(finalMatrix, this._rotate[0], finalMatrix);
     mat4.rotateY(finalMatrix, this._rotate[1], finalMatrix);
     mat4.rotateZ(finalMatrix, this._rotate[2], finalMatrix);
-    mat4.translate(finalMatrix, this._translate, finalMatrix);
 
     return finalMatrix as Float32Array;
   }

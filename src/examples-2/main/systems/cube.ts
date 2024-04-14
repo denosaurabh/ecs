@@ -1,5 +1,6 @@
 import { Geometry, StorageManager, Transform } from "../../core";
 import { World } from "..";
+import { vec2, vec3 } from "wgpu-matrix";
 
 class CubesFactory {
   private storage: StorageManager;
@@ -33,6 +34,9 @@ class CubesFactory {
       shader: mat,
       depthStencil: "depth24plus|less|true",
       vertexBufferLayouts: [this.cube.layout],
+      settings: {
+        topology: "triangle-list",
+      },
     });
 
     this.boxBindGroups = [];
@@ -64,19 +68,33 @@ class CubesFactory {
 export const Cubes = (world: World) => {
   const cubes = new CubesFactory(world);
 
+  const ground = new Transform(world.storage.buffers).scale(10, 0.1, 10);
+
   const cube = new Transform(world.storage.buffers)
-    .translate(0, 2, 0)
+    .translate(0, 1, 0)
     .scale(1, 1, 1);
 
-  const ground = new Transform(world.storage.buffers)
-    .translate(0, 0, 0)
-    .scale(10, 0.1, 10);
-
-  cubes.new(cube);
   cubes.new(ground);
+  cubes.new(cube);
+
+  // const cameraRadiusFromCharacter = 4;
+  // const cameraHeightFromCharacter = 4;
 
   return (pass: GPURenderPassEncoder) => {
-    cube.rotateY(world.globals.globalBindGroup.time.data);
+    // // rotation
+    // const angle = world.globals.globalBindGroup.time.data;
+
+    // const x = Math.cos(angle * 2) * cameraRadiusFromCharacter;
+    // const z = Math.sin(angle * 2) * cameraRadiusFromCharacter;
+
+    // camera.translate(
+    //   x + character.x(),
+    //   cameraHeightFromCharacter + character.y(),
+    //   z + character.z()
+    // );
+
+    // // updated character pos
+    // character.translate(character.x(), character.y(), character.z() - 0.005);
 
     cubes.render(pass, world);
   };
