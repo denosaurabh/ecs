@@ -6,6 +6,8 @@ import WindShader from "./wind.wgsl?raw";
 export const Wind = ({
   storage,
   geometry,
+  time,
+  player: { position },
   bindings: { timeProjectionView },
 }: World) => {
   const plane = geometry.PLANE();

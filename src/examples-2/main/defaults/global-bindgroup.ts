@@ -24,6 +24,11 @@ export const bindTimeAndProjView = (
   const camera = new IsometricCamera(size, storage);
   const player = new Player(storage);
 
+  const sizeBuffer = storage.buffers.createUniform(
+    new Float32Array([size.width, size.height]),
+    "size"
+  );
+
   const [timeProjectionViewBindGroup, timeProjectionViewBindGroupLayout] =
     storage.bindGroups.create({
       label: "time-projection-view",
@@ -46,6 +51,14 @@ export const bindTimeAndProjView = (
         {
           type: BindGroupEntryType.buffer({}),
           resource: storage.buffers.getBindingResource(player.buffer),
+          visibility: GPUShaderStage.VERTEX,
+        },
+        {
+          type: BindGroupEntryType.buffer({
+            type: "uniform",
+            minBindingSize: 8,
+          }),
+          resource: storage.buffers.getBindingResource(sizeBuffer),
           visibility: GPUShaderStage.VERTEX,
         },
       ],

@@ -8,6 +8,7 @@ import { Init, RendererData } from "./systems/init";
 
 import { Cubes } from "./systems/cube";
 import { Wind } from "./systems/wind";
+import { OrbitControl } from "./defaults/orbitcontrol";
 
 const renderer = await Init();
 const { device, context, width, height } = renderer;
@@ -43,18 +44,16 @@ let world: World = {
  *
  * ON LOAD SYSTEMS
  *
- *
  */
+
+const orbitControl = new OrbitControl(world.player, world.camera);
 
 const renderCubes = Cubes(world);
 const wind = Wind(world);
 
 /**
  *
- *
  * RENDER
- *
- *
  *
  */
 const depthTexture = storage.textures.create({
@@ -72,7 +71,7 @@ const depthTexture = storage.textures.create({
 const loop = () => {
   world.time.tick();
   world.camera.tick();
-  world.player.tick(world.camera);
+  orbitControl.tick();
 
   /**
    * COMMAND ENCODER

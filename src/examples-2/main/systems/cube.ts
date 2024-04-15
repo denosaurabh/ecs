@@ -57,7 +57,6 @@ class CubesFactory {
     pass.setPipeline(this.pipeline);
 
     pass.setVertexBuffer(0, this.cube.buffer);
-
     pass.setBindGroup(0, timeProjectionView.bindGroup);
 
     this.boxBindGroups.forEach((bindGroup) => {
@@ -70,24 +69,9 @@ class CubesFactory {
 export const Cubes = (world: World) => {
   const cubes = new CubesFactory(world);
 
-  const ground = new Transform(world.storage.buffers).scale(10, 1, 10);
-
-  const cube = new Transform(world.storage.buffers)
-    .translate(0, 1, 0)
-    .scale(1, 1, 1);
-
-  const cube2 = new Transform(world.storage.buffers)
-    .translate(5, 1, 0)
-    .scale(1, 1, 1);
-
-  const cube3 = new Transform(world.storage.buffers)
-    .translate(-20, 0, 0)
-    .scale(1, 1, 1);
+  const ground = new Transform(world.storage.buffers).scale(30, 0.1, 30);
 
   cubes.new(ground);
-  cubes.new(cube);
-  cubes.new(cube2);
-  cubes.new(cube3);
 
   return (pass: GPURenderPassEncoder) => {
     cubes.render(pass, world);
