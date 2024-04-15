@@ -1,6 +1,7 @@
 import { GEOMETRY_FACTORY, MATERIAL_FACTORY, StorageManager } from "../core";
 import {
   CameraControl,
+  CharacterControl,
   createGlobalBindGroup,
   defaultOrthographicCamera,
   GlobalBindGroup,
@@ -69,7 +70,7 @@ const depthTexture = storage.textures.create({
 const renderCubes = Cubes(world);
 
 CameraControl(world);
-// const CharacterControlRender = CharacterControl(world);
+const CharacterControlRender = CharacterControl(world);
 
 // loop
 const loop = () => {
@@ -78,8 +79,7 @@ const loop = () => {
   const updatedOrthoCam = OrthoCameraUpdateMatrices(world);
   world.globals.camera = updatedOrthoCam;
 
-  // CharacterControlRender();
-
+  CharacterControlRender();
   WriteCameraBuffer(world);
 
   /**

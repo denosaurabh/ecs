@@ -111,6 +111,7 @@ const topView: Pick<OrthographicCamera, "eye" | "target" | "up"> = {
 };
 
 export const defaultOrthographicCamera: OrthographicCamera = {
+  // ...topView,
   ...isometricView,
 
   near: 0.001,
@@ -126,9 +127,13 @@ export const defaultOrthographicCamera: OrthographicCamera = {
 
 export const OrthoCameraUpdateMatrices = ({
   renderer: { width, height },
-  globals: { camera },
+  globals: {
+    camera,
+    globalBindGroup: { time },
+  },
 }: World) => {
-  const { frustumSize, projection, view, eye, target, up, near, far } = camera;
+  const { frustumSize, projection, view, eye, target, up, near, far, angle } =
+    camera;
 
   let aspectRatio = width / height;
 
@@ -137,8 +142,11 @@ export const OrthoCameraUpdateMatrices = ({
   const bottom = -frustumSize / 2;
   const top = frustumSize / 2;
 
+  // rotate the camera around the target
   mat4.ortho(left, right, bottom, top, near, far, projection);
   mat4.lookAt(eye, target, up, view);
+
+  // mat4.rotateY(view, angle, view);
 
   return camera;
 };
@@ -146,8 +154,14 @@ export const OrthoCameraUpdateMatrices = ({
 const cameraRadiusFromCharacter = 50;
 const cameraHeightFromCharacter = 50;
 
-export const CameraControl = ({ globals: { camera } }: World) => {
+export const CameraControl = ({
+  globals: { camera },
+  renderer: { width, height },
+}: World) => {
+  let rotating = false;
+
   let moving = false;
+  let movingStartingPoint: [number, number] = [0, 0];
 
   // console.log(e.deltaY);
   window.addEventListener("contextmenu", (e): void => {
@@ -163,30 +177,66 @@ export const CameraControl = ({ globals: { camera } }: World) => {
 
     if (e.button === 0) {
       // LEFT MOUSE BUTTON
-      moving = true;
+
+      if (e.shiftKey) {
+        moving = true;
+        movingStartingPoint = [e.clientX, e.clientY];
+      } else {
+        rotating = true;
+      }
     }
   });
 
-  window.addEventListener("mouseup", () => {
-    moving = false;
+  window.addEventListener("mouseup", (e) => {
+    if (e.button === 0) {
+      // LEFT MOUSE BUTTON
+
+      if (e.shiftKey) {
+        moving = false;
+      } else {
+        rotating = false;
+      }
+    }
   });
 
   const MAX_ANGLE = 2;
-
   window.addEventListener("mousemove", (e) => {
-    if (!moving) return;
+    // rotating
+    if (rotating) {
+      const dx = e.movementX;
+      const angle = Number((dx / width).toFixed(3)) * MAX_ANGLE;
+      camera.angle += angle;
 
-    const dx = e.movementX;
+      vec3.rotateY(camera.eye, camera.target, -angle, camera.eye);
+    }
 
-    const angle = Number((dx / window.innerWidth).toFixed(3)) * MAX_ANGLE;
+    // moving
+    if (moving) {
+      console.log("moving");
 
-    camera.angle += angle;
+      // const screenCenter: [number, number] = [width / 2, height / 2];
+      const screenCenter: [number, number] = movingStartingPoint;
 
-    camera.eye = rotateVectorAroundPoint(
-      camera.target,
-      cameraRadiusFromCharacter,
-      camera.angle
-    );
+      // angle b/w screen center and mouse
+      const dx = e.clientX - screenCenter[0];
+      const dy = e.clientY - screenCenter[1];
+
+      const screenSpaceAngle = Math.atan2(dy, dx);
+
+      // derive world normalised vector from angle
+      const x = Math.cos(screenSpaceAngle);
+      const z = Math.sin(screenSpaceAngle);
+
+      const directionVector: [number, number, number] = [0, 0, 0];
+      directionVector[0] = 0.1;
+      directionVector[1] = 0;
+      directionVector[2] = 0.1;
+
+      // move the camera
+
+      vec3.add(camera.eye, directionVector, camera.eye);
+      vec3.add(camera.target, directionVector, camera.target);
+    }
   });
 };
 
@@ -205,22 +255,22 @@ export const WriteCameraBuffer = ({
   storage.buffers.write(projectionView.buffer, viewProjection);
 };
 
-const rotateVectorAroundPoint = (
-  point: [number, number, number],
-  radius: number,
-  angle: number
-): [number, number, number] => {
-  const x = Math.cos(angle * 2) * radius;
-  const z = Math.sin(angle * 2) * radius;
+// const rotateVectorAroundPoint = (
+//   point: [number, number, number],
+//   radius: number,
+//   angle: number
+// ): [number, number, number] => {
+//   const x = Math.cos(angle * 2) * radius;
+//   const z = Math.sin(angle * 2) * radius;
 
-  const newVector: [number, number, number] = [
-    x + point[0],
-    cameraHeightFromCharacter + point[1],
-    z + point[2],
-  ];
+//   const newVector: [number, number, number] = [
+//     x + point[0],
+//     cameraHeightFromCharacter + point[1],
+//     z + point[2],
+//   ];
 
-  return newVector;
-};
+//   return newVector;
+// };
 
 // character
 
@@ -255,24 +305,27 @@ export const CharacterControl = ({ globals: { camera } }: World) => {
   const speed = 0.1;
 
   return () => {
-    const copiedEye: [number, number, number] = [...camera.eye];
-    copiedEye[1] = 0;
-    const copiedTarget: [number, number, number] = [...camera.target];
-    copiedTarget[1] = 0;
+    const eye: [number, number, number] = [...camera.eye];
+    const target: [number, number, number] = [...camera.target];
 
-    const dirVec = vec3.sub(copiedTarget, copiedEye);
+    const dirVec = vec3.sub(target, eye);
     vec3.normalize(dirVec, dirVec);
 
     console.log(dirVec[0], dirVec[1], dirVec[2]);
 
     if (activeKeys["KeyW"]) {
       const forward = vec3.scale(dirVec, speed);
-      vec3.add(copiedTarget, vec3.negate(forward), camera.target);
+      const forwardW = [0.1, 0, 0];
+      // vec3.add(target, vec3.negate(forward), camera.target);
+      // vec3.add(eye, vec3.negate(forward), camera.eye);
+      vec3.add(target, forwardW, camera.target);
+      vec3.add(eye, forwardW, camera.eye);
     }
 
     if (activeKeys["KeyS"]) {
-      const forward = vec3.scale(dirVec, speed);
-      vec3.add(copiedTarget, forward, camera.target);
+      const backW = [-0.1, 0, 0];
+      vec3.add(target, backW, camera.target);
+      vec3.add(eye, backW, camera.eye);
     }
   };
 };

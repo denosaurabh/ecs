@@ -1,6 +1,5 @@
 import { Geometry, StorageManager, Transform } from "../../core";
 import { World } from "..";
-import { vec2, vec3 } from "wgpu-matrix";
 
 class CubesFactory {
   private storage: StorageManager;
@@ -68,19 +67,35 @@ class CubesFactory {
 export const Cubes = (world: World) => {
   const cubes = new CubesFactory(world);
 
-  const ground = new Transform(world.storage.buffers).scale(10, 0.1, 10);
+  const ground = new Transform(world.storage.buffers).scale(10, 1, 10);
 
   const cube = new Transform(world.storage.buffers)
     .translate(0, 1, 0)
     .scale(1, 1, 1);
 
+  const cube2 = new Transform(world.storage.buffers)
+    .translate(5, 1, 0)
+    .scale(1, 1, 1);
+
+  const cube3 = new Transform(world.storage.buffers)
+    .translate(-20, 0, 0)
+    .scale(1, 1, 1);
+
   cubes.new(ground);
   cubes.new(cube);
+  cubes.new(cube2);
+  cubes.new(cube3);
 
   // const cameraRadiusFromCharacter = 4;
   // const cameraHeightFromCharacter = 4;
 
   return (pass: GPURenderPassEncoder) => {
+    // target.translate(...world.globals.camera.target);
+    // target.writeBuffer();
+
+    // targetSmall.translate(...world.globals.camera.target);
+    // targetSmall.writeBuffer();
+
     // // rotation
     // const angle = world.globals.globalBindGroup.time.data;
 
