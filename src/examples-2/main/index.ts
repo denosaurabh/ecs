@@ -1,15 +1,5 @@
 import { GEOMETRY_FACTORY, MATERIAL_FACTORY, StorageManager } from "../core";
-import {
-  CameraControl,
-  CharacterControl,
-  createGlobalBindGroup,
-  defaultOrthographicCamera,
-  GlobalBindGroup,
-  OrthoCameraUpdateMatrices,
-  OrthographicCamera,
-  UpdateTime,
-  WriteCameraBuffer,
-} from "./global-bindgroup";
+import { bindTimeAndProjView, BindTimeAndProjView } from "./global-bindgroup";
 
 import { Init, RendererData } from "./systems/init";
 
@@ -27,30 +17,22 @@ const MATERIAL = new MATERIAL_FACTORY(storage);
  * WORLD
  */
 
-export type World = {
+export type World = BindTimeAndProjView & {
   renderer: RendererData;
   storage: StorageManager;
 
   geometry: GEOMETRY_FACTORY;
   material: MATERIAL_FACTORY;
-
-  globals: {
-    globalBindGroup: GlobalBindGroup;
-    camera: OrthographicCamera;
-  };
 };
 
-const world: World = {
+let world: World = {
   renderer: renderer,
   storage,
 
   geometry: GEOMETRY,
   material: MATERIAL,
 
-  globals: {
-    globalBindGroup: createGlobalBindGroup(storage),
-    camera: defaultOrthographicCamera,
-  },
+  ...bindTimeAndProjView(storage, { width, height }),
 };
 
 const depthTexture = storage.textures.create({
@@ -69,18 +51,10 @@ const depthTexture = storage.textures.create({
 // const renderTriangles = Triangle(world);
 const renderCubes = Cubes(world);
 
-CameraControl(world);
-const CharacterControlRender = CharacterControl(world);
-
 // loop
 const loop = () => {
-  UpdateTime(world);
-
-  const updatedOrthoCam = OrthoCameraUpdateMatrices(world);
-  world.globals.camera = updatedOrthoCam;
-
-  CharacterControlRender();
-  WriteCameraBuffer(world);
+  world.time.tick();
+  world.camera.tick();
 
   /**
    * COMMAND ENCODER

@@ -13,7 +13,7 @@ class CubesFactory {
     geometry,
     material,
     storage,
-    globals: { globalBindGroup },
+    bindings: { timeProjectionView },
   }: World) {
     this.storage = storage;
 
@@ -28,7 +28,7 @@ class CubesFactory {
     [this.pipeline] = storage.pipelines.create({
       label: "cube pipeline",
       layout: {
-        bindGroups: [globalBindGroup.layout, bindGroupLayout],
+        bindGroups: [timeProjectionView.layout, bindGroupLayout],
       },
       shader: mat,
       depthStencil: "depth24plus|less|true",
@@ -50,12 +50,15 @@ class CubesFactory {
     this.boxBindGroups.push(bindGroup);
   }
 
-  render(pass: GPURenderPassEncoder, { globals: { globalBindGroup } }: World) {
+  render(
+    pass: GPURenderPassEncoder,
+    { bindings: { timeProjectionView } }: World
+  ) {
     pass.setPipeline(this.pipeline);
 
     pass.setVertexBuffer(0, this.cube.buffer);
 
-    pass.setBindGroup(0, globalBindGroup.bindGroup);
+    pass.setBindGroup(0, timeProjectionView.bindGroup);
 
     this.boxBindGroups.forEach((bindGroup) => {
       pass.setBindGroup(1, bindGroup);
@@ -86,31 +89,7 @@ export const Cubes = (world: World) => {
   cubes.new(cube2);
   cubes.new(cube3);
 
-  // const cameraRadiusFromCharacter = 4;
-  // const cameraHeightFromCharacter = 4;
-
   return (pass: GPURenderPassEncoder) => {
-    // target.translate(...world.globals.camera.target);
-    // target.writeBuffer();
-
-    // targetSmall.translate(...world.globals.camera.target);
-    // targetSmall.writeBuffer();
-
-    // // rotation
-    // const angle = world.globals.globalBindGroup.time.data;
-
-    // const x = Math.cos(angle * 2) * cameraRadiusFromCharacter;
-    // const z = Math.sin(angle * 2) * cameraRadiusFromCharacter;
-
-    // camera.translate(
-    //   x + character.x(),
-    //   cameraHeightFromCharacter + character.y(),
-    //   z + character.z()
-    // );
-
-    // // updated character pos
-    // character.translate(character.x(), character.y(), character.z() - 0.005);
-
     cubes.render(pass, world);
   };
 };
