@@ -1,17 +1,21 @@
 import { GEOMETRY_FACTORY, MATERIAL_FACTORY, StorageManager } from "../core";
-import { bindTimeAndProjView, BindTimeAndProjView } from "./global-bindgroup";
+import {
+  bindTimeAndProjView,
+  BindTimeAndProjView,
+} from "./defaults/global-bindgroup";
 
 import { Init, RendererData } from "./systems/init";
 
 import { Cubes } from "./systems/cube";
+import { Wind } from "./systems/wind";
 
 const renderer = await Init();
 const { device, context, width, height } = renderer;
 
 const storage = new StorageManager(device);
 
-const GEOMETRY = new GEOMETRY_FACTORY(storage);
-const MATERIAL = new MATERIAL_FACTORY(storage);
+const geometry = new GEOMETRY_FACTORY(storage);
+const materials = new MATERIAL_FACTORY(storage);
 
 /**
  * WORLD
@@ -22,19 +26,37 @@ export type World = BindTimeAndProjView & {
   storage: StorageManager;
 
   geometry: GEOMETRY_FACTORY;
-  material: MATERIAL_FACTORY;
+  materials: MATERIAL_FACTORY;
 };
 
 let world: World = {
-  renderer: renderer,
+  renderer,
   storage,
 
-  geometry: GEOMETRY,
-  material: MATERIAL,
+  geometry,
+  materials,
 
   ...bindTimeAndProjView(storage, { width, height }),
 };
 
+/**
+ *
+ * ON LOAD SYSTEMS
+ *
+ *
+ */
+
+const renderCubes = Cubes(world);
+const wind = Wind(world);
+
+/**
+ *
+ *
+ * RENDER
+ *
+ *
+ *
+ */
 const depthTexture = storage.textures.create({
   size: [width, height],
   format: "depth24plus",
@@ -47,14 +69,10 @@ const depthTexture = storage.textures.create({
     GPUTextureUsage.RENDER_ATTACHMENT,
 });
 
-// systems
-// const renderTriangles = Triangle(world);
-const renderCubes = Cubes(world);
-
-// loop
 const loop = () => {
   world.time.tick();
   world.camera.tick();
+  world.player.tick(world.camera);
 
   /**
    * COMMAND ENCODER
@@ -80,6 +98,7 @@ const loop = () => {
 
   // renderTriangles(pass);
   renderCubes(pass);
+  wind(pass);
 
   pass.end();
 
@@ -88,4 +107,5 @@ const loop = () => {
   requestAnimationFrame(loop);
 };
 
+// loop
 loop();

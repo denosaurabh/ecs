@@ -62,6 +62,56 @@ export class GEOMETRY_FACTORY {
     return data;
   }
 
+  public PLANE(): Geometry {
+    const verticies = new Float32Array([
+      // pos(x,y) uv(u,v)
+
+      // first triangle
+      // top left
+      -1.0, 1.0, 0.0, 0.0,
+      // top right
+      1.0, 1.0, 1.0, 0.0,
+      // bottom left
+      -1.0, -1.0, 0.0, 1.0,
+
+      // second triangle
+      // bottom left
+      -1.0, -1.0, 0.0, 1.0,
+      // top right
+      1.0, 1.0, 1.0, 0.0,
+      // bottom right
+      1.0, -1.0, 1.0, 1.0,
+    ]);
+
+    const vertexCount = 6;
+
+    const [buffer, layout] = this.storage.vertexBuffers.create({
+      label: "Plane geometry",
+      data: verticies,
+      writeAtCreation: true,
+      layout: {
+        attributes: [
+          {
+            label: "POSITION",
+            format: "float32x2",
+          },
+          {
+            label: "UV",
+            format: "float32x2",
+          },
+        ],
+      },
+    });
+
+    const data = {
+      vertexCount,
+      buffer,
+      layout,
+    };
+
+    return data;
+  }
+
   public POSTPROCESS_QUAD(): Geometry {
     const verticies = new Float32Array([
       // pos(x,y) tex(u,v)

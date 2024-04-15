@@ -1,10 +1,12 @@
-import { BindGroupEntryType, StorageManager } from "../core";
-import { IsometricCamera } from "./defaults/isometric-camera";
-import { Time } from "./defaults/time";
+import { BindGroupEntryType, StorageManager } from "../../core";
+import { IsometricCamera } from "./isometric-camera";
+import { Player } from "./player";
+import { Time } from "./time";
 
 export type BindTimeAndProjView = {
   time: Time;
   camera: IsometricCamera;
+  player: Player;
 
   bindings: {
     timeProjectionView: {
@@ -20,6 +22,7 @@ export const bindTimeAndProjView = (
 ): BindTimeAndProjView => {
   const time = new Time(storage);
   const camera = new IsometricCamera(size, storage);
+  const player = new Player(storage);
 
   const [timeProjectionViewBindGroup, timeProjectionViewBindGroupLayout] =
     storage.bindGroups.create({
@@ -40,12 +43,18 @@ export const bindTimeAndProjView = (
           ),
           visibility: GPUShaderStage.VERTEX,
         },
+        {
+          type: BindGroupEntryType.buffer({}),
+          resource: storage.buffers.getBindingResource(player.buffer),
+          visibility: GPUShaderStage.VERTEX,
+        },
       ],
     });
 
   return {
     time,
     camera,
+    player,
 
     bindings: {
       timeProjectionView: {

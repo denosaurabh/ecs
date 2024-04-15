@@ -4,7 +4,7 @@ import { Geometry } from "../../core";
 let pipeline: GPURenderPipeline;
 let triangle: Geometry;
 
-export const Triangle = ({ geometry, material, storage }: World) => {
+export const Triangle = ({ geometry, materials: material, storage }: World) => {
   triangle = geometry.TRIANGE();
   const simpleMaterial = material.SIMPLE;
 

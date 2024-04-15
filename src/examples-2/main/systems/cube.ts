@@ -11,7 +11,7 @@ class CubesFactory {
 
   constructor({
     geometry,
-    material,
+    materials: material,
     storage,
     bindings: { timeProjectionView },
   }: World) {
