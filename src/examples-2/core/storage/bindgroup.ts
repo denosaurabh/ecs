@@ -13,7 +13,7 @@ export type BindGroupEntry = {
 
   resource: GPUBindingResource;
 
-  type: BindGroupEntryTypeT<any>;
+  type: BindGroupEntryTypeT<unknown>; // Add type argument here
 
   // offset?: number;
   // size?: number;

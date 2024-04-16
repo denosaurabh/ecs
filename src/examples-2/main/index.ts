@@ -9,6 +9,8 @@ import { Init, RendererData } from "./systems/init";
 import { Cubes } from "./systems/cube";
 import { Wind } from "./systems/wind";
 import { OrbitControl } from "./defaults/orbitcontrol";
+import { DisplayDepth } from "./systems/depth";
+import { Grass } from "./systems/grass";
 
 const renderer = await Init();
 const { device, context, width, height } = renderer;
@@ -40,22 +42,16 @@ let world: World = {
   ...bindTimeAndProjView(storage, { width, height }),
 };
 
+storage.pipelines.ADD_DEFAULT_BINDGROUPLAYOUT(
+  world.bindings.timeProjectionView.layout
+);
+
 /**
  *
  * ON LOAD SYSTEMS
  *
  */
 
-const orbitControl = new OrbitControl(world.player, world.camera);
-
-const renderCubes = Cubes(world);
-const wind = Wind(world);
-
-/**
- *
- * RENDER
- *
- */
 const depthTexture = storage.textures.create({
   size: [width, height],
   format: "depth24plus",
@@ -64,21 +60,42 @@ const depthTexture = storage.textures.create({
 
   usage:
     GPUTextureUsage.COPY_DST |
+    GPUTextureUsage.COPY_SRC |
     GPUTextureUsage.TEXTURE_BINDING |
     GPUTextureUsage.RENDER_ATTACHMENT,
 });
+
+const orbitControl = new OrbitControl(world.player, world.camera);
+
+// const triangles = Triangle(world);
+const renderCubes = Cubes(world);
+const wind = Wind(world);
+const grass = Grass(world);
+
+const renderDepth = DisplayDepth(world, depthTexture);
+
+/**
+ *
+ * RENDER
+ *
+ */
 
 const loop = () => {
   world.time.tick();
   world.camera.tick();
   orbitControl.tick();
 
+  world.storage.buffers.write(
+    world.buffers.activeProjectionView,
+    world.camera.projectionView
+  );
+
   /**
    * COMMAND ENCODER
    */
-  const encoder = device.createCommandEncoder();
+  const mainCamEncoder = device.createCommandEncoder();
 
-  const pass = encoder.beginRenderPass({
+  const pass = mainCamEncoder.beginRenderPass({
     colorAttachments: [
       {
         view: context.getCurrentTexture().createView(),
@@ -95,13 +112,31 @@ const loop = () => {
     },
   });
 
-  // renderTriangles(pass);
+  pass.setBindGroup(0, world.bindings.timeProjectionView.bindGroup);
+
   renderCubes(pass);
   wind(pass);
+  grass(pass);
 
   pass.end();
 
-  device.queue.submit([encoder.finish()]);
+  // NEW
+  const pass2 = mainCamEncoder.beginRenderPass({
+    colorAttachments: [
+      {
+        view: context.getCurrentTexture().createView(),
+        loadOp: "load",
+        storeOp: "store",
+      },
+    ],
+  });
+  pass2.setBindGroup(0, world.bindings.timeProjectionView.bindGroup);
+
+  // triangles(pass2);
+  renderDepth(pass2);
+  pass2.end();
+
+  device.queue.submit([mainCamEncoder.finish()]);
 
   requestAnimationFrame(loop);
 };

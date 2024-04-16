@@ -9,7 +9,7 @@ import { CreateShaderReturn } from "./storage/shaders";
 export type Material = CreateShaderReturn;
 
 export class MATERIAL_FACTORY {
-  storage: StorageManager;
+  private storage: StorageManager;
 
   constructor(storage: StorageManager) {
     this.storage = storage;

@@ -6,10 +6,7 @@ import WindShader from "./wind.wgsl?raw";
 export const Wind = ({
   storage,
   geometry,
-  time,
-  player: { position },
-  bindings: { timeProjectionView },
-}: World) => {
+}: Pick<World, "storage" | "geometry">) => {
   const plane = geometry.PLANE();
   const material = storage.shaders.create({
     code: WindShader,
@@ -19,7 +16,7 @@ export const Wind = ({
 
   // transform
   const transform = new Transform(storage.buffers)
-    .translate(0, 4, 0)
+    .translate(-30, 4, 0)
     .scale(10, 10, 10)
     .rotateX(-Math.PI / 2);
   transform.writeBuffer();
@@ -37,7 +34,7 @@ export const Wind = ({
     depthStencil: "depth24plus|less|true",
 
     layout: {
-      bindGroups: [timeProjectionView.layout, layout],
+      bindGroups: [layout],
     },
 
     settings: {
@@ -49,8 +46,6 @@ export const Wind = ({
     pass.setPipeline(pipeline);
 
     pass.setVertexBuffer(0, plane.buffer);
-
-    pass.setBindGroup(0, timeProjectionView.bindGroup);
     pass.setBindGroup(1, bindGroup);
 
     pass.draw(plane.vertexCount);

@@ -1,6 +1,6 @@
 import { CreateShaderReturn } from "./shaders";
 
-type CreatePipelineProps = {
+export type CreatePipelineProps = {
   label?: string;
 
   /**
@@ -39,6 +39,8 @@ type CreatePipelineProps = {
 };
 
 export class PipelineManager {
+  defaultBindGroupLayout: GPUBindGroupLayout | undefined = undefined;
+
   constructor(private device: GPUDevice) {}
 
   create(
@@ -66,9 +68,15 @@ export class PipelineManager {
         );
       }
 
+      const bindGroups = [];
+
+      if (this.defaultBindGroupLayout) {
+        bindGroups.push(this.defaultBindGroupLayout);
+      }
+
       layout = this.device.createPipelineLayout({
         label: descriptorLayout.label,
-        bindGroupLayouts: descriptorLayout.bindGroups,
+        bindGroupLayouts: [...bindGroups, ...descriptorLayout.bindGroups],
       });
     }
 
@@ -130,5 +138,13 @@ export class PipelineManager {
     const gpuPipeline = this.device.createRenderPipeline(pipelineDescriptor);
 
     return [gpuPipeline, layout];
+  }
+
+  public ADD_DEFAULT_BINDGROUPLAYOUT(layout: GPUBindGroupLayout) {
+    console.info(
+      "all new pipelines will this bind group layout at binding 0: ",
+      layout.label
+    );
+    this.defaultBindGroupLayout = layout;
   }
 }

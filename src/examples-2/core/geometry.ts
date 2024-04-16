@@ -8,7 +8,7 @@ export type Geometry = {
 };
 
 export class GEOMETRY_FACTORY {
-  storage: StorageManager;
+  private storage: StorageManager;
 
   constructor(storage: StorageManager) {
     this.storage = storage;
@@ -48,6 +48,41 @@ export class GEOMETRY_FACTORY {
           {
             label: "COLOR",
             format: "float32x3",
+          },
+        ],
+      },
+    });
+
+    const data = {
+      vertexCount,
+      buffer,
+      layout,
+    };
+
+    return data;
+  }
+
+  public GRASS_BLADE(): Geometry {
+    const verticies = new Float32Array([
+      // position - x, y
+      0.0, 1.0, 1.0, 0.0, /* */ -1.0, -1.0, 0.0, 1.0, /* */ 1.0, -1.0, 1.0, 1.0,
+    ]);
+
+    const vertexCount = 3;
+
+    const [buffer, layout] = this.storage.vertexBuffers.create({
+      label: "Grass Blade geometry",
+      data: verticies,
+      writeAtCreation: true,
+      layout: {
+        attributes: [
+          {
+            label: "POSITION",
+            format: "float32x2",
+          },
+          {
+            label: "UV",
+            format: "float32x2",
           },
         ],
       },

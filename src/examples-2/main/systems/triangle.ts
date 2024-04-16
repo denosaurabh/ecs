@@ -12,7 +12,7 @@ export const Triangle = ({ geometry, materials: material, storage }: World) => {
     label: "triangle pipeline",
     shader: simpleMaterial,
     vertexBufferLayouts: [triangle.layout],
-    depthStencil: "depth24plus|less|true",
+    // depthStencil: "depth24plus|less|true",
   });
 
   // render

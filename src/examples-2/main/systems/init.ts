@@ -1,6 +1,7 @@
 export type RendererData = {
   width: number;
   height: number;
+  pixelRatio: number;
 
   device: GPUDevice;
   context: GPUCanvasContext;
@@ -31,6 +32,8 @@ export const Init = async (): Promise<RendererData> => {
     throw new Error("Canvas not found!");
   }
 
+  const pixelRatio = window.devicePixelRatio;
+
   const width = window.innerWidth;
   const height = window.innerHeight;
 
@@ -57,6 +60,7 @@ export const Init = async (): Promise<RendererData> => {
   const data = {
     width,
     height,
+    pixelRatio,
 
     device,
     context,
