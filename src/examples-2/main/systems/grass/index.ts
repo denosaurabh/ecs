@@ -41,6 +41,6 @@ export const Grass = ({ geometry, storage }: World) => {
     pass.setPipeline(pipeline);
     pass.setBindGroup(1, bindGroup);
     pass.setVertexBuffer(0, geo.buffer);
-    pass.draw(geo.vertexCount);
+    pass.draw(geo.vertexCount, 100);
   };
 };

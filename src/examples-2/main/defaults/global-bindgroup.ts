@@ -1,12 +1,14 @@
 import { BindGroupEntryType, StorageManager } from "../../core";
 import { IsometricCamera } from "./isometric-camera";
 import { Player } from "./player";
+import { Sun } from "./sun";
 import { Time } from "./time";
 
 export type BindTimeAndProjView = {
   time: Time;
   camera: IsometricCamera;
   player: Player;
+  sun: Sun;
 
   buffers: {
     activeProjectionView: GPUBuffer;
@@ -27,6 +29,7 @@ export const bindTimeAndProjView = (
   const time = new Time(storage);
   const camera = new IsometricCamera(size);
   const player = new Player(storage);
+  const sun = new Sun(storage);
 
   const sizeBuffer = storage.buffers.createUniform(
     new Float32Array([size.width, size.height]),
@@ -68,6 +71,13 @@ export const bindTimeAndProjView = (
           resource: storage.buffers.getBindingResource(sizeBuffer),
           visibility: GPUShaderStage.VERTEX,
         },
+        {
+          type: BindGroupEntryType.buffer({
+            type: "uniform",
+          }),
+          resource: storage.buffers.getBindingResource(sun.buffer),
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        },
       ],
     });
 
@@ -75,6 +85,7 @@ export const bindTimeAndProjView = (
     time,
     camera,
     player,
+    sun,
 
     buffers: {
       activeProjectionView,

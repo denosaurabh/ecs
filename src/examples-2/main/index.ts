@@ -6,7 +6,7 @@ import {
 
 import { Init, RendererData } from "./systems/init";
 
-import { Cubes } from "./systems/cube";
+import { Cubes } from "./systems/cubes";
 import { Wind } from "./systems/wind";
 import { OrbitControl } from "./defaults/orbitcontrol";
 import { DisplayDepth } from "./systems/depth";
@@ -83,6 +83,8 @@ const renderDepth = DisplayDepth(world, depthTexture);
 const loop = () => {
   world.time.tick();
   world.camera.tick();
+  world.sun.tick(world.player.position, world.time.value);
+
   orbitControl.tick();
 
   world.storage.buffers.write(
