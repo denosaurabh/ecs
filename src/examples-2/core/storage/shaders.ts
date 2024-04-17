@@ -5,27 +5,28 @@ export type CreateShaderProps = {
 
   vertex?: string;
   frag?: string;
+  compute?: string;
 };
 
 export type CreateShaderReturn = [
   GPUShaderModule,
-  { vertex: string; frag: string }
+  { vertex: string; frag: string; compute: string }
 ];
 
 export class ShaderManager {
   constructor(private device: GPUDevice) {}
 
   create(shader: CreateShaderProps): CreateShaderReturn {
-    const { vertexFunction, fragmentFunction } = getShaderFunctionNames(
-      shader.code
-    );
+    const { vertexFunction, fragmentFunction, computeFunction } =
+      getShaderFunctionNames(shader.code);
 
-    const vertex = shader.vertex || vertexFunction;
-    const frag = shader.frag || fragmentFunction;
+    const vertex = shader.vertex || vertexFunction || "";
+    const frag = shader.frag || fragmentFunction || "";
+    const compute = shader.compute || computeFunction || "";
 
-    if (!vertex || !frag) {
+    if (!vertex && !frag && !compute) {
       throw new Error(
-        `Could not find vertex or fragment function in shader code`
+        `Could not find neither vertex, frag or compute function in given shader code`
       );
     }
 
@@ -37,6 +38,7 @@ export class ShaderManager {
       {
         vertex,
         frag,
+        compute,
       },
     ];
   }
@@ -45,10 +47,12 @@ export class ShaderManager {
 function getShaderFunctionNames(wgslCode: string): {
   vertexFunction: string | null;
   fragmentFunction: string | null;
+  computeFunction: string | null;
 } {
   const lines = wgslCode.split(";");
   let vertexFunction: string | null = null;
   let fragmentFunction: string | null = null;
+  let computeFunction: string | null = null;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -64,8 +68,13 @@ function getShaderFunctionNames(wgslCode: string): {
       if (match) {
         fragmentFunction = match[1];
       }
+    } else if (trimmedLine.includes("@compute")) {
+      const match = trimmedLine.match(/@compute\s+fn\s+(\w+)/);
+      if (match) {
+        computeFunction = match[1];
+      }
     }
   }
 
-  return { vertexFunction, fragmentFunction };
+  return { vertexFunction, fragmentFunction, computeFunction };
 }

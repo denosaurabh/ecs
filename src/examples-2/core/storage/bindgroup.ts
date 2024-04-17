@@ -1,4 +1,8 @@
-type BindGroup = { label?: string; entries: BindGroupEntry[] };
+type BindGroup = {
+  label?: string;
+  layout?: GPUBindGroupLayout;
+  entries: BindGroupEntry[];
+};
 
 type CreateBindGroupLayout = {
   label?: string;
@@ -23,7 +27,7 @@ export class BindGroupManager {
   constructor(private device: GPUDevice) {}
 
   create(data: BindGroup): [GPUBindGroup, GPUBindGroupLayout] {
-    const bindGroupLayout = this.createLayout(data);
+    const bindGroupLayout = data.layout || this.createLayout(data);
 
     // bindgroup
     const bindGroup = this.device.createBindGroup({

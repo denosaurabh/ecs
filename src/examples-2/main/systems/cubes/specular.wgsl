@@ -1,6 +1,7 @@
 @group(0) @binding(0) var<uniform> time : f32;
 @group(0) @binding(1) var<uniform> projectionView : mat4x4f;
 @group(0) @binding(4) var<uniform> sunPos : vec3f;
+@group(0) @binding(5) var<uniform> camEye : vec3f;
 
 struct Transform {
     modelMat: mat4x4f,
@@ -40,12 +41,17 @@ fn fragMain(
   @location(1) color: vec3f,
   @location(2) normal_mat: vec3f
 ) -> @location(0) vec4f {
-    var finalColor = color * max(0.3, dot(normalize(sunPos), normal_mat));
+
+    const specularLight = vec3f(1., 1., 1.);
+
+    let specularVal = dot(normal_mat, normalize(camEye));
+    let specularFinalCol = specularLight * max(0.0, specularVal);
+
+    var finalColor = color * max(0.3, dot(normalize(sunPos), normal_mat)) + specularFinalCol;
     // var finalColor = color;
     // finalColor = abs(normal);
-    // finalColor = normal_mat.xyz;
+    finalColor = normal_mat.xyz;
     // finalColor = vec3f( max(0.0, dot(normalize(sunPos), normal )) );
 
     return vec4f(finalColor, 1.0);
 }
-

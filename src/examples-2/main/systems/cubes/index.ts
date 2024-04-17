@@ -3,6 +3,7 @@ import { Mesh, Transform } from "../../../core";
 
 import NormalShader from "./normal.wgsl?raw";
 import DiffuseShader from "./diffuse.wgsl?raw";
+import SpecularShader from "./specular.wgsl?raw";
 
 export const Cubes = ({ geometry, storage, time, sun }: World) => {
   const normalShader = storage.shaders.create({
@@ -11,6 +12,10 @@ export const Cubes = ({ geometry, storage, time, sun }: World) => {
 
   const diffuseShader = storage.shaders.create({
     code: DiffuseShader,
+  });
+
+  const specularShader = storage.shaders.create({
+    code: SpecularShader,
   });
 
   const meshProps = {
@@ -28,12 +33,21 @@ export const Cubes = ({ geometry, storage, time, sun }: World) => {
   const tallTransform = new Transform(storage.buffers)
     .translate(20, 0, 0)
     .scale(1, 10, 1);
-
   const tall = Mesh({
     ...meshProps,
     geometry: geometry.CUBE_WITH_NORMAL(),
     material: diffuseShader,
     transform: tallTransform,
+  });
+
+  const tall2Transform = new Transform(storage.buffers)
+    .translate(-2, 0, 0)
+    .scale(1, 10, 1);
+  const tall2 = Mesh({
+    ...meshProps,
+    geometry: geometry.CUBE_WITH_NORMAL(),
+    material: specularShader,
+    transform: tall2Transform,
   });
 
   const sunTransform = new Transform(storage.buffers)
@@ -46,7 +60,7 @@ export const Cubes = ({ geometry, storage, time, sun }: World) => {
 
   const normalTransform = new Transform(storage.buffers)
     .scale(1, 1, 1)
-    .translate(0, 5, 10);
+    .translate(0, 2, 15);
   const normal = Mesh({
     ...meshProps,
     transform: normalTransform,
@@ -54,6 +68,7 @@ export const Cubes = ({ geometry, storage, time, sun }: World) => {
 
   return (pass: GPURenderPassEncoder) => {
     tallTransform.rotateY(time.value);
+    tall2Transform.rotateY(time.value * 2 + 2);
 
     sunTransform.translate(
       sun.position[0] * 1,
@@ -63,6 +78,7 @@ export const Cubes = ({ geometry, storage, time, sun }: World) => {
 
     ground(pass);
     tall(pass);
+    tall2(pass);
     sunmesh(pass);
     normal(pass);
   };

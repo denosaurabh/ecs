@@ -13,6 +13,7 @@ export type BindTimeAndProjView = {
   buffers: {
     activeProjectionView: GPUBuffer;
     activeInvProjectionView: GPUBuffer;
+    cameraEye: GPUBuffer;
   };
 
   bindings: {
@@ -45,6 +46,11 @@ export const bindTimeAndProjView = (
   const activeInvProjectionView = storage.buffers.createUniform(
     new Float32Array(16),
     "active-inv-projection-view"
+  );
+
+  const cameraEye = storage.buffers.createUniform(
+    new Float32Array([0, 0, 0]),
+    "camera-pos"
   );
 
   const [timeProjectionViewBindGroup, timeProjectionViewBindGroupLayout] =
@@ -92,8 +98,8 @@ export const bindTimeAndProjView = (
         // 5
         {
           type: BindGroupEntryType.buffer({}),
-          resource: storage.buffers.getBindingResource(activeInvProjectionView),
-          visibility: GPUShaderStage.VERTEX,
+          resource: storage.buffers.getBindingResource(cameraEye),
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         },
       ],
     });
@@ -107,6 +113,7 @@ export const bindTimeAndProjView = (
     buffers: {
       activeProjectionView,
       activeInvProjectionView,
+      cameraEye,
     },
     bindings: {
       timeProjectionView: {

@@ -12,6 +12,7 @@ import { OrbitControl } from "./defaults/orbitcontrol";
 import { DisplayDepth } from "./systems/depth";
 import { Grass } from "./systems/grass";
 import { mat4 } from "wgpu-matrix";
+import { Particles } from "./systems/particles";
 
 const renderer = await Init();
 const { device, context, width, height } = renderer;
@@ -72,6 +73,7 @@ const orbitControl = new OrbitControl(world.player, world.camera);
 const renderCubes = Cubes(world);
 const wind = Wind(world);
 const grass = Grass(world);
+const particles = Particles(world);
 
 const renderDepth = DisplayDepth(world, depthTexture);
 
@@ -80,6 +82,8 @@ const renderDepth = DisplayDepth(world, depthTexture);
  * RENDER
  *
  */
+
+const camEyeFloat32 = new Float32Array(3);
 
 const loop = () => {
   world.time.tick();
@@ -96,6 +100,11 @@ const loop = () => {
     world.buffers.activeInvProjectionView,
     mat4.inverse(world.camera.projectionView) as Float32Array
   );
+
+  camEyeFloat32[0] = world.camera.eye[0];
+  camEyeFloat32[1] = world.camera.eye[1];
+  camEyeFloat32[2] = world.camera.eye[2];
+  world.storage.buffers.write(world.buffers.cameraEye, camEyeFloat32);
 
   /**
    * COMMAND ENCODER
@@ -126,6 +135,9 @@ const loop = () => {
   grass(pass);
 
   pass.end();
+
+  // compute & render particles
+  particles(mainCamEncoder);
 
   // NEW
   const pass2 = mainCamEncoder.beginRenderPass({
