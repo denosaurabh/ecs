@@ -57,3 +57,22 @@ export const Mesh = ({
     pass.draw(geometry.vertexCount);
   };
 };
+
+/*****  TRANSLUCENT BLENDING ******* */
+
+// {
+//   format: "bgra8unorm", // Choose the appropriate color format
+//   blend: {
+//     color: {
+//       srcFactor: "src-alpha",
+//       dstFactor: "one-minus-src-alpha",
+//       operation: "add",
+//     },
+//     alpha: {
+//       srcFactor: "one",
+//       dstFactor: "one-minus-src-alpha",
+//       operation: "add",
+//     },
+//   },
+//   writeMask: GPUColorWrite.ALL,
+// },

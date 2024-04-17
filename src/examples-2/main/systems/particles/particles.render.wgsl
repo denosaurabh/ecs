@@ -1,9 +1,3 @@
-@group(0) @binding(0) var<uniform> time : f32;
-@group(0) @binding(1) var<uniform> projectionView : mat4x4f;
-@group(0) @binding(4) var<uniform> sunPos : vec3f;
-@group(0) @binding(5) var<uniform> camEye : vec3f;
-
-
 @group(1) @binding(0) var<storage, read> mvpMatrix : array<mat4x4<f32>>;
 
 struct VertexOutput {
