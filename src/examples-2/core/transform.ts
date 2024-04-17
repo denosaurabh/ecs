@@ -1,4 +1,4 @@
-import { mat4, Vec3 } from "wgpu-matrix";
+import { Mat4, mat4, Vec3 } from "wgpu-matrix";
 import { BufferManager } from "./storage/buffer";
 import { BindGroupEntryType } from "./storage";
 import { BindGroupEntry } from "./storage/bindgroup";
@@ -8,17 +8,26 @@ export class Transform {
   private _rotate: Vec3;
   private _scale: Vec3;
 
-  private buffer: GPUBuffer;
+  private _buffer: GPUBuffer;
+  private _modelMatrix: Mat4 = mat4.create();
 
   constructor(private bufferManager: BufferManager) {
     this._translate = [0, 0, 0];
     this._rotate = [0, 0, 0];
     this._scale = [1, 1, 1];
 
-    this.buffer = bufferManager.createUniform(
-      this.getFloat32Array(),
+    this._buffer = bufferManager.createUniform(
+      new Float32Array(Float32Array.BYTES_PER_ELEMENT * 16 * 2) as Float32Array,
       "Transform"
     );
+  }
+
+  get modelMatrix(): Float32Array {
+    return this._modelMatrix as Float32Array;
+  }
+
+  get invModelMatrix(): Float32Array {
+    return mat4.transpose(mat4.inverse(this._modelMatrix)) as Float32Array;
   }
 
   translate(x: number, y: number, z: number) {
@@ -69,7 +78,7 @@ export class Transform {
   }
 
   // data
-  getFloat32Array(): Float32Array {
+  compute(): Float32Array {
     const finalMatrix = mat4.identity();
 
     mat4.translate(finalMatrix, this._translate, finalMatrix);
@@ -78,19 +87,28 @@ export class Transform {
     mat4.rotateZ(finalMatrix, this._rotate[2], finalMatrix);
     mat4.scale(finalMatrix, this._scale, finalMatrix);
 
-    return finalMatrix as Float32Array;
+    this._modelMatrix = finalMatrix;
+
+    return this._modelMatrix as Float32Array;
   }
 
   getBindingEntry(bufferManager: BufferManager): BindGroupEntry {
     return {
       ...Transform.bindingEntryLayout,
-      resource: bufferManager.getBindingResource(this.buffer),
+      resource: bufferManager.getBindingResource(this._buffer),
     };
   }
 
   // write
   writeBuffer() {
-    this.bufferManager.write(this.buffer, this.getFloat32Array());
+    this.compute();
+
+    this.bufferManager.write(this._buffer, this.modelMatrix);
+    this.bufferManager.write(
+      this._buffer,
+      this.invModelMatrix,
+      16 * Float32Array.BYTES_PER_ELEMENT
+    );
   }
 
   static get bindingEntryLayout() {
@@ -98,7 +116,7 @@ export class Transform {
       visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
       type: BindGroupEntryType.buffer({
         type: "uniform",
-        minBindingSize: 64,
+        minBindingSize: Float32Array.BYTES_PER_ELEMENT * 16 * 2,
         hasDynamicOffset: false,
       }),
     };
@@ -106,7 +124,7 @@ export class Transform {
 
   // gets
   get size() {
-    return Float32Array.BYTES_PER_ELEMENT * 16;
+    return Float32Array.BYTES_PER_ELEMENT * 16 * 2;
   }
 
   get usage() {

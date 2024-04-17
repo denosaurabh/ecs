@@ -12,6 +12,7 @@ export type BindTimeAndProjView = {
 
   buffers: {
     activeProjectionView: GPUBuffer;
+    activeInvProjectionView: GPUBuffer;
   };
 
   bindings: {
@@ -41,10 +42,16 @@ export const bindTimeAndProjView = (
     "active-projection-view"
   );
 
+  const activeInvProjectionView = storage.buffers.createUniform(
+    new Float32Array(16),
+    "active-inv-projection-view"
+  );
+
   const [timeProjectionViewBindGroup, timeProjectionViewBindGroupLayout] =
     storage.bindGroups.create({
       label: "time-projection-view",
       entries: [
+        // 0
         {
           type: BindGroupEntryType.buffer({
             type: "uniform",
@@ -53,16 +60,19 @@ export const bindTimeAndProjView = (
           resource: storage.buffers.getBindingResource(time.buffer),
           visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         },
+        // 1
         {
           type: BindGroupEntryType.buffer({}),
           resource: storage.buffers.getBindingResource(activeProjectionView),
           visibility: GPUShaderStage.VERTEX,
         },
+        // 2
         {
           type: BindGroupEntryType.buffer({}),
           resource: storage.buffers.getBindingResource(player.buffer),
           visibility: GPUShaderStage.VERTEX,
         },
+        // 3
         {
           type: BindGroupEntryType.buffer({
             type: "uniform",
@@ -71,12 +81,19 @@ export const bindTimeAndProjView = (
           resource: storage.buffers.getBindingResource(sizeBuffer),
           visibility: GPUShaderStage.VERTEX,
         },
+        // 4
         {
           type: BindGroupEntryType.buffer({
             type: "uniform",
           }),
           resource: storage.buffers.getBindingResource(sun.buffer),
           visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        },
+        // 5
+        {
+          type: BindGroupEntryType.buffer({}),
+          resource: storage.buffers.getBindingResource(activeInvProjectionView),
+          visibility: GPUShaderStage.VERTEX,
         },
       ],
     });
@@ -89,6 +106,7 @@ export const bindTimeAndProjView = (
 
     buffers: {
       activeProjectionView,
+      activeInvProjectionView,
     },
     bindings: {
       timeProjectionView: {

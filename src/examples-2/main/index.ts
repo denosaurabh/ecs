@@ -11,6 +11,7 @@ import { Wind } from "./systems/wind";
 import { OrbitControl } from "./defaults/orbitcontrol";
 import { DisplayDepth } from "./systems/depth";
 import { Grass } from "./systems/grass";
+import { mat4 } from "wgpu-matrix";
 
 const renderer = await Init();
 const { device, context, width, height } = renderer;
@@ -83,13 +84,17 @@ const renderDepth = DisplayDepth(world, depthTexture);
 const loop = () => {
   world.time.tick();
   world.camera.tick();
-  world.sun.tick(world.player.position, world.time.value);
+  world.sun.tick();
 
   orbitControl.tick();
 
   world.storage.buffers.write(
     world.buffers.activeProjectionView,
     world.camera.projectionView
+  );
+  world.storage.buffers.write(
+    world.buffers.activeInvProjectionView,
+    mat4.inverse(world.camera.projectionView) as Float32Array
   );
 
   /**

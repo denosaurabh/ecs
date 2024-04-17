@@ -1,7 +1,12 @@
 @group(0) @binding(0) var<uniform> time : f32;
 @group(0) @binding(1) var<uniform> projectionView : mat4x4f;
   
-@group(1) @binding(0) var<uniform> modelMat : mat4x4f;
+struct Transform {
+    modelMat: mat4x4f,
+    invModelMat: mat4x4f,
+};
+  
+@group(1) @binding(0) var<uniform> model : Transform;
 @group(1) @binding(1) var<uniform> uniformColor : vec3f;
 
 struct VertexOutput {
@@ -16,7 +21,7 @@ fn vertexMain(
     @location(2) uv : vec2f
 ) -> VertexOutput {
     var output : VertexOutput;
-    output.Position =  projectionView * modelMat * position; // + (time * 0.1)
+    output.Position =  projectionView * model.modelMat * position; // + (time * 0.1)
 
     // output.color = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
     // output.color = vec4(0.5, 0.0, 0.0, 0.1);
