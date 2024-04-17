@@ -165,7 +165,7 @@ export const Particles = ({
   */
 
   //   const inputArray = new Float32Array([NUM, -500, 500, -250, 250, -500, 500]); // count, xmin/max, ymin/max, zmin/max
-  const inputArray = new Float32Array([NUM, -100, 100, -100, 100, -100, 100]); // count, xmin/max, ymin/max, zmin/max
+  const inputArray = new Float32Array([NUM, 70, 120, -50, 50, -50, 50]); // count, xmin/max, ymin/max, zmin/max
   const modelArray = new Float32Array(MAX * 4 * 4);
   const velocityArray = new Float32Array(MAX * 4);
   for (let i = 0; i < MAX; i++) {
