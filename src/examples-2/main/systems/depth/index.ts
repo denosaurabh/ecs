@@ -4,7 +4,12 @@ import { World } from "../..";
 import DepthShader from "./depth.wgsl?raw";
 
 export const DisplayDepth = (
-  { geometry, storage }: World,
+  {
+    geometry,
+    storage,
+    settings: { multisample },
+    renderer: { width, height },
+  }: World,
   depthTex: GPUTexture
 ) => {
   const plane = geometry.PLANE();
@@ -31,8 +36,12 @@ export const DisplayDepth = (
         visibility: GPUShaderStage.FRAGMENT,
       },
       {
-        type: BindGroupEntryType.texture({ sampleType: "depth" }),
-        resource: depthTex.createView(),
+        type: BindGroupEntryType.texture({
+          sampleType: "depth",
+          // viewDimension: "2d",
+          multisampled: true,
+        }),
+        resource: depthTex.createView({}),
         visibility: GPUShaderStage.FRAGMENT,
       },
     ],
@@ -51,6 +60,7 @@ export const DisplayDepth = (
     settings: {
       cullMode: "front",
     },
+    multisample,
     // depthStencil: "depth24plus|less|true",
   });
 
@@ -58,6 +68,10 @@ export const DisplayDepth = (
     pass.setPipeline(pipeline);
     pass.setVertexBuffer(0, plane.buffer);
     pass.setBindGroup(1, depthBindGroup);
+
+    pass.setScissorRect(50, 50, 400, 300);
+    pass.setViewport(50, 50, 400, 300, 0, 1);
+
     pass.draw(plane.vertexCount);
   };
 };

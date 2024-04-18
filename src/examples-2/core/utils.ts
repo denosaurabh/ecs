@@ -4,7 +4,7 @@ import { StorageManager } from "./storage";
 import { CreatePipelineProps } from "./storage/pipeline";
 import { Transform } from "./transform";
 
-type MeshProps = {
+export type MeshProps = {
   name?: string;
 
   geometry: Geometry;
@@ -18,6 +18,7 @@ type MeshProps = {
     depthStencil?: CreatePipelineProps["depthStencil"];
     cullMode?: GPUCullMode;
     topology?: GPUPrimitiveTopology;
+    multisample: GPUMultisampleState;
   };
 };
 
@@ -46,6 +47,7 @@ export const Mesh = ({
     },
 
     settings,
+    multisample: settings?.multisample,
   });
 
   return (pass: GPURenderPassEncoder) => {

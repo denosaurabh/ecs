@@ -6,7 +6,8 @@ import WindShader from "./wind.wgsl?raw";
 export const Wind = ({
   storage,
   geometry,
-}: Pick<World, "storage" | "geometry">) => {
+  settings: { multisample },
+}: World) => {
   const plane = geometry.PLANE();
   const material = storage.shaders.create({
     code: WindShader,
@@ -40,6 +41,8 @@ export const Wind = ({
     settings: {
       cullMode: "front",
     },
+
+    multisample,
   });
 
   return (pass: GPURenderPassEncoder) => {

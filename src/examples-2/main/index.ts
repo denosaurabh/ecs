@@ -15,7 +15,7 @@ import { mat4 } from "wgpu-matrix";
 import { Particles } from "./systems/particles";
 
 const renderer = await Init();
-const { device, context, width, height } = renderer;
+const { device, context, width, height, format } = renderer;
 
 const storage = new StorageManager(device);
 
@@ -32,6 +32,10 @@ export type World = BindTimeAndProjView & {
 
   geometry: GEOMETRY_FACTORY;
   materials: MATERIAL_FACTORY;
+
+  settings: {
+    multisample: GPUMultisampleState;
+  };
 };
 
 let world: World = {
@@ -42,6 +46,12 @@ let world: World = {
   materials,
 
   ...bindTimeAndProjView(storage, { width, height }),
+
+  settings: {
+    multisample: {
+      count: 4,
+    },
+  },
 };
 
 storage.pipelines.ADD_DEFAULT_BINDGROUPLAYOUT(
@@ -53,12 +63,20 @@ storage.pipelines.ADD_DEFAULT_BINDGROUPLAYOUT(
  * ON LOAD SYSTEMS
  *
  */
+const multiSampleTexture = storage.textures.create({
+  size: [width, height],
+  format,
+  usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  sampleCount: world.settings.multisample.count,
+});
+const multiSampleTextureView = multiSampleTexture.createView();
 
 const depthTexture = storage.textures.create({
   size: [width, height],
   format: "depth24plus",
 
   depthOrArrayLayers: 1,
+  sampleCount: world.settings.multisample.count,
 
   usage:
     GPUTextureUsage.COPY_DST |
@@ -114,7 +132,9 @@ const loop = () => {
   const pass = mainCamEncoder.beginRenderPass({
     colorAttachments: [
       {
-        view: context.getCurrentTexture().createView(),
+        // view: context.getCurrentTexture().createView(),
+        view: multiSampleTextureView,
+        resolveTarget: context.getCurrentTexture().createView(),
         loadOp: "clear",
         storeOp: "store",
         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
@@ -143,7 +163,10 @@ const loop = () => {
   const pass2 = mainCamEncoder.beginRenderPass({
     colorAttachments: [
       {
-        view: context.getCurrentTexture().createView(),
+        view: multiSampleTextureView,
+        resolveTarget: context.getCurrentTexture().createView(),
+        // view: context.getCurrentTexture().createView(),
+
         loadOp: "load",
         storeOp: "store",
       },

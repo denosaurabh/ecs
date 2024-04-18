@@ -3,7 +3,11 @@ import { World } from "../..";
 
 import GrassShader from "./grass.wgsl?raw";
 
-export const Grass = ({ geometry, storage }: World) => {
+export const Grass = ({
+  geometry,
+  storage,
+  settings: { multisample },
+}: World) => {
   const geo = geometry.GRASS_BLADE();
   const mat = storage.shaders.create({
     label: "grass material",
@@ -35,6 +39,7 @@ export const Grass = ({ geometry, storage }: World) => {
     settings: {
       cullMode: "none",
     },
+    multisample,
   });
 
   return (pass: GPURenderPassEncoder) => {

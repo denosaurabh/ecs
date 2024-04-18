@@ -5,7 +5,13 @@ import NormalShader from "./normal.wgsl?raw";
 import DiffuseShader from "./diffuse.wgsl?raw";
 import SpecularShader from "./specular.wgsl?raw";
 
-export const Cubes = ({ geometry, storage, time, sun }: World) => {
+export const Cubes = ({
+  geometry,
+  storage,
+  time,
+  sun,
+  settings: { multisample },
+}: World) => {
   const normalShader = storage.shaders.create({
     code: NormalShader,
   });
@@ -23,6 +29,9 @@ export const Cubes = ({ geometry, storage, time, sun }: World) => {
     geometry: geometry.CUBE(),
     material: normalShader,
     storage,
+    settings: {
+      multisample,
+    },
   };
 
   const ground = Mesh({

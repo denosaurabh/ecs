@@ -25,6 +25,7 @@ export type CreatePipelineProps = {
   };
 
   depthStencil?: "depth24plus|less|true";
+  multisample?: GPUMultisampleState;
 
   settings?: {
     /**
@@ -53,6 +54,7 @@ export class PipelineManager {
       vertexBufferLayouts,
       fragmentTargets,
       depthStencil: descriptorDepthStencil,
+      multisample,
       settings,
     } = descriptor;
 
@@ -133,6 +135,7 @@ export class PipelineManager {
         topology: settings?.topology || "triangle-list",
         cullMode: settings?.cullMode || "back",
       },
+      multisample,
     };
 
     const gpuPipeline = this.device.createRenderPipeline(pipelineDescriptor);

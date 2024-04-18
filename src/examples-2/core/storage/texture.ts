@@ -15,13 +15,15 @@ type CreateTexureProps = {
    * default - `rgba8unorm`
    */
   format?: GPUTextureFormat;
+
+  sampleCount?: number;
 };
 
 export class TextureManager {
   constructor(private device: GPUDevice) {}
 
   create(textureProps: CreateTexureProps): GPUTexture {
-    const textureDescriptor = {
+    const textureDescriptor: GPUTextureDescriptor = {
       size: {
         width: textureProps.size[0],
         height: textureProps.size[1],
@@ -29,6 +31,7 @@ export class TextureManager {
       },
       format: textureProps.format || "rgba8unorm",
       usage: textureProps.usage,
+      sampleCount: textureProps.sampleCount,
     };
 
     const gpuTexture = this.device.createTexture(textureDescriptor);
