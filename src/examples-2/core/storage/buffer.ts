@@ -6,7 +6,7 @@ export type BufferStorageDescriptor = {
 
   writeAtCreation?: boolean;
 
-  data?: Float32Array;
+  data?: Float32Array | Uint16Array;
 };
 
 export class BufferManager {
@@ -28,10 +28,26 @@ export class BufferManager {
 
     if (descriptor.writeAtCreation && descriptor.data) {
       const mappedRange = buffer.getMappedRange();
-      const dataArray = new Float32Array(mappedRange);
-      dataArray.set(descriptor.data);
+
+      let dataArray: Float32Array | Uint16Array;
+
+      switch (descriptor.data?.constructor) {
+        case Float32Array:
+          dataArray = new Float32Array(mappedRange);
+          dataArray.set(descriptor.data);
+
+          break;
+        case Uint16Array:
+          dataArray = new Uint16Array(mappedRange);
+          dataArray.set(descriptor.data);
+
+          break;
+        default:
+          console.error("unsupported buffer type");
+          break;
+      }
+
       buffer.unmap();
-      // device.queue.writeBuffer(buffer, 0, descriptor.data);
     }
 
     return buffer;

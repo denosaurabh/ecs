@@ -56,7 +56,12 @@ export const Mesh = ({
     pass.setVertexBuffer(0, geometry.buffer);
     pass.setBindGroup(1, bindGroup);
 
-    pass.draw(geometry.vertexCount);
+    if (geometry.indexBuffer && geometry.indexCount) {
+      pass.setIndexBuffer(geometry.indexBuffer, "uint16");
+      pass.drawIndexed(geometry.indexCount);
+    } else {
+      pass.draw(geometry.vertexCount);
+    }
   };
 };
 

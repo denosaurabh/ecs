@@ -4,6 +4,7 @@ import { Mesh, Transform } from "../../../core";
 import NormalShader from "./normal.wgsl?raw";
 import DiffuseShader from "./diffuse.wgsl?raw";
 import SpecularShader from "./specular.wgsl?raw";
+import SphereShader from "./sphere.wgsl?raw";
 
 export const Cubes = ({
   geometry,
@@ -34,6 +35,7 @@ export const Cubes = ({
     },
   };
 
+  // BOXES
   const ground = Mesh({
     ...meshProps,
     transform: new Transform(storage.buffers).scale(30, 0.1, 30),
@@ -75,6 +77,19 @@ export const Cubes = ({
     transform: normalTransform,
   });
 
+  // SPHERE
+  const sphereShader = storage.shaders.create({
+    code: SphereShader,
+  });
+
+  const sphere = Mesh({
+    ...meshProps,
+    material: sphereShader,
+    geometry: geometry.SPHERE(),
+    transform: new Transform(storage.buffers).translate(10, 10, 0),
+    name: "sphere",
+  });
+
   return (pass: GPURenderPassEncoder) => {
     tallTransform.rotateY(time.value);
     tall2Transform.rotateY(time.value * 2 + 2);
@@ -85,10 +100,14 @@ export const Cubes = ({
       sun.position[2] * 1
     );
 
+    // boxes
     ground(pass);
     tall(pass);
     tall2(pass);
     sunmesh(pass);
     normal(pass);
+
+    // sphere
+    sphere(pass);
   };
 };
