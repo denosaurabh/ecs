@@ -13,6 +13,7 @@ import { DisplayDepth } from "./systems/depth";
 import { Grass } from "./systems/grass";
 import { mat4 } from "wgpu-matrix";
 import { Particles } from "./systems/particles";
+import { Volume } from "./systems/volume";
 
 const renderer = await Init();
 const { device, context, width, height, format } = renderer;
@@ -92,6 +93,7 @@ const renderCubes = Cubes(world);
 const wind = Wind(world);
 const grass = Grass(world);
 const particles = Particles(world);
+const volume = Volume(world);
 
 const renderDepth = DisplayDepth(world, depthTexture);
 
@@ -153,6 +155,7 @@ const loop = () => {
   renderCubes(pass);
   wind(pass);
   grass(pass);
+  volume(pass);
 
   pass.end();
 
