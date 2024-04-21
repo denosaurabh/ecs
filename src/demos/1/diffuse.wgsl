@@ -18,7 +18,6 @@ struct VertexOutput {
     @builtin(position) Position : vec4f,
     @location(0) normal: vec3f,
     @location(1) color: vec3f,
-    @location(2) normal_mat: vec3f
 }
 
 @vertex
@@ -29,12 +28,10 @@ fn vertexMain(
     var output : VertexOutput;
     output.Position = pv.projView * model.modelMat * vec4f(position, 1.0);
 
-    output.normal = normal;
-
     var thenewnormal = model.invModelMat * vec4f(normal, 0.0);
-    output.normal_mat = normalize(vec3f(thenewnormal.x, thenewnormal.y, thenewnormal.z));
+    output.normal = normalize(vec3f(thenewnormal.x, thenewnormal.y, thenewnormal.z));
 
-    output.color = vec3(0.2, 0.5, 0.4);
+    output.color = vec3(0.82, 0.64, 0.53);
 
     return output;
 }
@@ -43,9 +40,8 @@ fn vertexMain(
 fn fragMain(
   @location(0) normal: vec3f,
   @location(1) color: vec3f,
-  @location(2) normal_mat: vec3f
 ) -> @location(0) vec4f {
-    var finalColor = color * max(0.3, dot(normalize(sunPos), normal_mat));
+    var finalColor = color * max(0.6, dot(normalize(sunPos), normal));
     // var finalColor = color;
     // finalColor = abs(normal);
     // finalColor = normal_mat.xyz;
@@ -53,4 +49,3 @@ fn fragMain(
 
     return vec4f(finalColor, 1.0);
 }
-

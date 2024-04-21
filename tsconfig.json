@@ -23,11 +23,11 @@
     "paths": {
       "@core": ["src/core/index"],
       "@demos": ["src/demos/index"],
+      "@utils": ["src/utils/index"],
 
       "@ecs": ["src-old/core-old/ecs/index"],
       "@storage": ["src-old/core-old/storage/index"],
       "@rendergraph": ["src-old/core-old/rendergraph/index"],
-      "@utils": ["src-old/core-old/utils/index"],
       "@3d/*": ["src-old/core-old/3d/*"]
     },
 

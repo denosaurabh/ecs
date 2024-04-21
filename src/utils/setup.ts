@@ -6,11 +6,11 @@ import {
   RendererData,
 } from "@core";
 
-import { IsometricCamera } from "./components/isometric-camera";
-import { OrbitControl } from "./components/orbitcontrol";
-import { Player } from "./components/player";
-import { SunControl } from "./components/sun";
-import { Time } from "./components/time";
+import { IsometricCamera } from "../components/isometric-camera";
+import { OrbitControl } from "../components/orbitcontrol";
+import { Player } from "../components/player";
+import { SunControl } from "../components/sun";
+import { Time } from "../components/time";
 
 export type GlobalData = {
   factory: WGPUFactory;

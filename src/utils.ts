@@ -1,4 +1,4 @@
-import { GlobalData } from "./setup";
+import { GlobalData } from "./utils/setup";
 
 export const createPipeline = (globalData: GlobalData, {}) => {
   const { factory, geometry, bindGroups } = globalData;

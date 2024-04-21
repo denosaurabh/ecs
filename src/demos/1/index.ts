@@ -1,8 +1,7 @@
 import { Init } from "@core";
-import { GlobalSetup } from "../../setup";
+import { GlobalSetup, MeshManager } from "@utils";
 
 import DiffuseShader from "./diffuse.wgsl?raw";
-import { MeshManager } from "../../mesh";
 
 export const RunTriangle = async () => {
   const rendererData = await Init();
@@ -40,6 +39,12 @@ export const RunTriangle = async () => {
         {
           view: textures.multisample.view,
           resolveTarget: context.getCurrentTexture().createView(),
+          clearValue: {
+            r: 0.91,
+            g: 0.82,
+            b: 0.68,
+            a: 1,
+          },
           loadOp: "clear",
           storeOp: "store",
         },
