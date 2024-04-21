@@ -1,9 +1,9 @@
 import {
   OrthographicCameraComponent,
   OrthographicCameraProps,
-} from "@3d/components";
-import { renderer_data } from "@3d/resources";
-import { Component, World } from "@ecs";
+} from "src/core-old/3d/components";
+import { renderer_data } from "src/core-old/3d/resources";
+import { Component, World } from "src/core-old/ecs";
 import { mat4 } from "wgpu-matrix";
 
 export const OrthographicCameraSystemInit = (world: World) => {

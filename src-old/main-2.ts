@@ -1,5 +1,5 @@
-import { Schedule, World } from "@ecs";
-import { renderer_data } from "@3d/resources";
+import { Schedule, World } from "src/core-old/ecs";
+import { renderer_data } from "src/core-old/3d/resources";
 import {
   OrthographicCameraSystemInit,
   Prepare,
@@ -7,15 +7,15 @@ import {
   Renderer,
   WriteCameraBuffer,
   UpdateTime,
-} from "@3d/systems";
+} from "src/core-old/3d/systems";
 import { animate } from "./utils";
-import { Transform } from "@utils";
+import { Transform } from "src/core-old/utils";
 import {
   OrthographicCameraComponent,
   RenderPassComponent,
-} from "@3d/components";
-import { GEOMETRY } from "@3d/geometry";
-import { MATERIAL } from "@3d/materials";
+} from "src/core-old/3d/components";
+import { GEOMETRY } from "src/core-old/3d/geometry";
+import { MATERIAL } from "src/core-old/3d/materials";
 
 /* *************************  WORLD  ************************************* */
 

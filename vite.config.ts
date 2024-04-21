@@ -3,6 +3,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
   resolve: {
     alias: {
+      "@core": "/src/core/index",
+      "@demos": "/src/demos/index",
+
       "@ecs": "/src/core/ecs/index",
       "@storage": "/src/core/storage/index",
       "@rendergraph": "/src/core/rendergraph/index",

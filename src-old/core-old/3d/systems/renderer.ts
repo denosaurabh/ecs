@@ -1,4 +1,4 @@
-import { System, World } from "@ecs";
+import { System, World } from "src/core-old/ecs";
 import { renderer_data } from "../resources";
 
 export const Renderer: System = async (_world: World) => {

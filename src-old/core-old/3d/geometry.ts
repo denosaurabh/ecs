@@ -1,4 +1,8 @@
-import { StorageManager, VertexBuffersManager, StorageRef } from "@storage";
+import {
+  StorageManager,
+  VertexBuffersManager,
+  StorageRef,
+} from "src/core-old/storage";
 
 type GeometryReturn = {
   vertexCount: number;

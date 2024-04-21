@@ -1,5 +1,5 @@
-import { component } from "@ecs";
-import { FinalRenderPass, RenderPass } from "@rendergraph";
+import { component } from "src/core-old/ecs";
+import { FinalRenderPass, RenderPass } from "src/core-old/rendergraph";
 import { Mat4, mat4 } from "wgpu-matrix";
 
 export type OrthographicCameraProps = {

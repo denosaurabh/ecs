@@ -1,4 +1,4 @@
-import { resource } from "@ecs";
+import { resource } from "src/core-old/ecs";
 
 export const renderer_data = resource<{
   width: number;

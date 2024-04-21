@@ -1,19 +1,22 @@
-import { FinalRenderPassComponent, RenderPassComponent } from "@3d/components";
-import { renderer_data } from "@3d/resources";
-import { World } from "@ecs";
+import {
+  FinalRenderPassComponent,
+  RenderPassComponent,
+} from "src/core-old/3d/components";
+import { renderer_data } from "src/core-old/3d/resources";
+import { World } from "src/core-old/ecs";
 import {
   FinalDraw,
   FinalOutputAttachment,
   FinalRenderPass,
   RenderPass,
-} from "@rendergraph";
+} from "src/core-old/rendergraph";
 import {
   BuffersManager,
   SamplersManager,
   StorageManager,
   StorageRef,
   TexturesManager,
-} from "@storage";
+} from "src/core-old/storage";
 
 export const Prepare = (world: World) => {
   const { storage } = world;

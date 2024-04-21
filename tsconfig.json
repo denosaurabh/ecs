@@ -21,11 +21,14 @@
 
     "baseUrl": ".",
     "paths": {
-      "@ecs": ["src/core/ecs/index"],
-      "@storage": ["src/core/storage/index"],
-      "@rendergraph": ["src/core/rendergraph/index"],
-      "@utils": ["src/core/utils/index"],
-      "@3d/*": ["src/core/3d/*"]
+      "@core": ["src/core/index"],
+      "@demos": ["src/demos/index"],
+
+      "@ecs": ["src/core-old/ecs/index"],
+      "@storage": ["src/core-old/storage/index"],
+      "@rendergraph": ["src/core-old/rendergraph/index"],
+      "@utils": ["src/core-old/utils/index"],
+      "@3d/*": ["src/core-old/3d/*"]
     },
 
     "types": ["@webgpu/types"]

@@ -1,7 +1,7 @@
-import { FinalRenderPassComponent } from "@3d/components";
-import { renderer_data } from "@3d/resources";
-import { Component, World } from "@ecs";
-import { FinalRenderPass } from "@rendergraph";
+import { FinalRenderPassComponent } from "src/core-old/3d/components";
+import { renderer_data } from "src/core-old/3d/resources";
+import { Component, World } from "src/core-old/ecs";
+import { FinalRenderPass } from "src/core-old/rendergraph";
 
 export const Render = (world: World) => {
   const finalRenderGraphs = world.query.exact(FinalRenderPassComponent);

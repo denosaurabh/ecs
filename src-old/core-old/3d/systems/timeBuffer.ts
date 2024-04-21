@@ -1,5 +1,5 @@
-import { renderer_data } from "@3d/resources";
-import { World } from "@ecs";
+import { renderer_data } from "src/core-old/3d/resources";
+import { World } from "src/core-old/ecs";
 
 export const UpdateTime = ({ storage }: World) => {
   const { device } = renderer_data.get()!;

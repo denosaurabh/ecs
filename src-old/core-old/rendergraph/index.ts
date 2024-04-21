@@ -4,7 +4,7 @@ import {
   VertexBuffersManager,
   BindgroupManager,
   TexturesManager,
-} from "@storage";
+} from "src/core-old/storage";
 
 export type RenderPass = {
   label?: string;

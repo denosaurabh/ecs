@@ -1,6 +1,68 @@
 import "./index.css";
 
-// import "./examples";
-import "./examples-2/main";
+import { RunTriangle } from "./demos";
 
-// import "./tests/depth";
+let cleanup: () => void;
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+// set default demo
+if (!document.location.hash) {
+  document.location.hash = "select";
+}
+setDemo(document.location.hash);
+
+// change hash on Select element change
+const selectDemoElement = document.getElementById("select_demo");
+
+if (!selectDemoElement) {
+  throw new Error("selectDemoElement not found");
+} else {
+  // @ts-ignore
+  selectDemoElement.value = document.location.hash.replace("#", "");
+}
+
+selectDemoElement.addEventListener("change", async (event) => {
+  const val = (event.target as HTMLSelectElement)?.value;
+  document.location.hash = val;
+});
+
+// listen for hash change
+window.addEventListener("hashchange", () => {
+  setDemo(document.location.hash);
+});
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+async function setDemo(demo: string) {
+  // cleanup
+  if (cleanup) {
+    cleanup();
+  }
+
+  switch (demo) {
+    case "#select": {
+      console.warn("select a demo");
+      break;
+    }
+    case "#triangle": {
+      cleanup = await RunTriangle();
+      break;
+    }
+    case "#outlines": {
+      // TODO
+      break;
+    }
+    default: {
+      console.error("no demo selected or demo not found");
+    }
+  }
+}

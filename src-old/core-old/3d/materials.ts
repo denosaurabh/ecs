@@ -1,5 +1,9 @@
 import SolidColorShader from "../../shaders/materials/solid_color.wgsl?raw";
-import { ShadersManager, StorageManager, StorageRef } from "@storage";
+import {
+  ShadersManager,
+  StorageManager,
+  StorageRef,
+} from "src/core-old/storage";
 
 type RGB = { r: number; g: number; b: number };
 
