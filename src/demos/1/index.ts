@@ -1,46 +1,65 @@
-import { GEOMETRY_FACTORY, Init, TransformManager, WGPUFactory } from "@core";
+import { Init } from "@core";
+import { GlobalSetup } from "../../setup";
 
-type World = {
-  rendererData: ReturnType<typeof Init>;
-
-  factory: WGPUFactory;
-  transform: TransformManager;
-  geometry: GEOMETRY_FACTORY;
-
-  settings: {
-    multisample: GPUMultisampleState;
-  };
-};
+import SimpleShader from "./simple.wgsl?raw";
 
 export const RunTriangle = async () => {
   const rendererData = await Init();
-  const { device } = rendererData;
+  const { device, context } = rendererData;
 
-  const factory = new WGPUFactory(device);
-  const transform = new TransformManager(factory.buffers);
+  const globalSetup = new GlobalSetup(rendererData);
+  const { factory, geometry, bindGroups } = globalSetup.data;
 
-  const geometry = new GEOMETRY_FACTORY(factory);
+  // objects
+  const geo = geometry.TRIANGE();
 
-  const world = {
-    rendererData,
-    factory,
-    transform,
-    geometry,
+  const shader = factory.shaders.create({
+    code: SimpleShader,
+  });
 
-    settings: {
-      multisample: {
-        count: 4,
-      },
+  const [pipeline] = factory.pipelines.create({
+    label: "triangle",
+
+    layout: {
+      bindGroups: [bindGroups.layout],
     },
-  };
 
-  console.log(world);
+    shader,
+    vertexBufferLayouts: [geo.layout],
+  });
 
   let animateId = 0;
   const loop = () => {
-    device.queue.submit([]);
+    globalSetup.tick();
+
+    // render
+    console.log("render");
+
+    const encoder = device.createCommandEncoder();
+
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [
+        {
+          view: context.getCurrentTexture().createView(),
+          loadOp: "clear",
+          storeOp: "store",
+        },
+      ],
+    });
+
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroups.main);
+    pass.setVertexBuffer(0, geo.buffer);
+    pass.draw(geo.vertexCount, 1);
+
+    pass.end();
+
+    device.queue.submit([encoder.finish()]);
+
+    // end
     animateId = requestAnimationFrame(loop);
   };
+  loop();
 
   return () => {
     cancelAnimationFrame(animateId);
