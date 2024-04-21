@@ -1,4 +1,4 @@
-import { CreateShaderReturn } from "./shaders";
+import { Shader } from "./shaders";
 
 export type CreatePipelineProps = {
   label?: string;
@@ -13,7 +13,7 @@ export type CreatePipelineProps = {
         bindGroups?: GPUBindGroupLayout[];
       };
 
-  shader: CreateShaderReturn;
+  shader: Shader;
   vertexBufferLayouts: GPUVertexBufferLayout[];
 
   /**

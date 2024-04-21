@@ -2,43 +2,31 @@ import { Init } from "@core";
 import { GlobalSetup } from "../../setup";
 
 import DiffuseShader from "./diffuse.wgsl?raw";
+import { MeshManager } from "../../mesh";
 
 export const RunTriangle = async () => {
   const rendererData = await Init();
   const { device, context } = rendererData;
 
   const globalSetup = new GlobalSetup(rendererData);
-  const { factory, geometry, bindGroups, textures, transform, settings } =
-    globalSetup.data;
+
+  const { factory, geometry, textures, transform } = globalSetup.data;
+
+  const mesh = new MeshManager(globalSetup.data);
 
   // objects
   const geo = geometry.CUBE_WITH_NORMAL();
 
   const shader = factory.shaders.create({
-    // code: SimpleShader,
     code: DiffuseShader,
   });
 
-  const cubeTransform = transform.new().translate(0, 0, 0).createBindGroup();
+  const cubeTransform = transform.new().translate(0, 0, 0);
 
-  const [pipeline] = factory.pipelines.create({
-    label: "triangle",
+  const cube = mesh.new(geo, shader);
+  cube.setTransform(cubeTransform);
 
-    layout: {
-      bindGroups: [bindGroups.layout, cubeTransform[1]],
-    },
-
-    shader,
-    vertexBufferLayouts: [geo.layout],
-
-    depthStencil: "depth24plus|less|true",
-
-    multisample: settings.multisample,
-    settings: {
-      topology: "triangle-list",
-      cullMode: "back",
-    },
-  });
+  cube.intitialize();
 
   let animateId = 0;
   const loop = () => {
@@ -64,14 +52,7 @@ export const RunTriangle = async () => {
       },
     });
 
-    pass.setPipeline(pipeline);
-
-    pass.setBindGroup(0, bindGroups.main);
-    pass.setBindGroup(1, cubeTransform[0]);
-
-    pass.setVertexBuffer(0, geo.buffer);
-
-    pass.draw(geo.vertexCount, 1);
+    cube.render(pass, "MAIN");
 
     pass.end();
 

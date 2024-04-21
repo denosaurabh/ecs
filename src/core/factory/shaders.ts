@@ -8,7 +8,7 @@ export type CreateShaderProps = {
   compute?: string;
 };
 
-export type CreateShaderReturn = [
+export type Shader = [
   GPUShaderModule,
   { vertex: string; frag: string; compute: string }
 ];
@@ -16,7 +16,7 @@ export type CreateShaderReturn = [
 export class ShaderManager {
   constructor(private device: GPUDevice) {}
 
-  create(shader: CreateShaderProps): CreateShaderReturn {
+  create(shader: CreateShaderProps): Shader {
     const { vertexFunction, fragmentFunction, computeFunction } =
       getShaderFunctionNames(shader.code);
 

@@ -21,3 +21,4 @@ export class WGPUFactory {
 }
 
 export { BindGroupEntryType } from "./bindgroup";
+export type { Shader } from "./shaders";

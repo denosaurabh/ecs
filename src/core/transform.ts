@@ -11,7 +11,7 @@ export class TransformManager {
   }
 }
 
-class Transform {
+export class Transform {
   private _translate: Vec3;
   private _rotate: Vec3;
   private _scale: Vec3;
