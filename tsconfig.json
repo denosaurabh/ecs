@@ -24,14 +24,23 @@
       "@core": ["src/core/index"],
       "@demos": ["src/demos/index"],
 
-      "@ecs": ["src/core-old/ecs/index"],
-      "@storage": ["src/core-old/storage/index"],
-      "@rendergraph": ["src/core-old/rendergraph/index"],
-      "@utils": ["src/core-old/utils/index"],
-      "@3d/*": ["src/core-old/3d/*"]
+      "@ecs": ["src-old/core-old/ecs/index"],
+      "@storage": ["src-old/core-old/storage/index"],
+      "@rendergraph": ["src-old/core-old/rendergraph/index"],
+      "@utils": ["src-old/core-old/utils/index"],
+      "@3d/*": ["src-old/core-old/3d/*"]
     },
 
     "types": ["@webgpu/types"]
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "src-old/examples",
+    "src-old/core-old",
+    "src-old/tests",
+    "src-old/experiments",
+    "src-old/examples-2",
+    "src-old/utils.ts",
+    "src-old/main-2.ts"
+  ]
 }

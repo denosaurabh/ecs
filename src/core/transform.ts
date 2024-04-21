@@ -1,13 +1,13 @@
 import { Mat4, mat4, Vec3 } from "wgpu-matrix";
 import { BufferManager } from "./factory/buffer";
-import { BindGroupEntryType } from "./factory";
+import { BindGroupEntryType, WGPUFactory } from "./factory";
 import { BindGroupEntry } from "./factory/bindgroup";
 
 export class TransformManager {
-  constructor(private bufferManager: BufferManager) {}
+  constructor(private factory: WGPUFactory) {}
 
   new() {
-    return new Transform(this.bufferManager);
+    return new Transform(this.factory);
   }
 }
 
@@ -19,12 +19,12 @@ class Transform {
   private _buffer: GPUBuffer;
   private _modelMatrix: Mat4 = mat4.create();
 
-  constructor(private bufferManager: BufferManager) {
+  constructor(private factory: WGPUFactory) {
     this._translate = [0, 0, 0];
     this._rotate = [0, 0, 0];
     this._scale = [1, 1, 1];
 
-    this._buffer = bufferManager.createUniform(
+    this._buffer = this.factory.buffers.createUniform(
       new Float32Array(Float32Array.BYTES_PER_ELEMENT * 16 * 2) as Float32Array,
       "Transform"
     );
@@ -111,12 +111,19 @@ class Transform {
   writeBuffer() {
     this.compute();
 
-    this.bufferManager.write(this._buffer, this.modelMatrix);
-    this.bufferManager.write(
+    this.factory.buffers.write(this._buffer, this.modelMatrix);
+    this.factory.buffers.write(
       this._buffer,
       this.invModelMatrix,
       16 * Float32Array.BYTES_PER_ELEMENT
     );
+  }
+
+  createBindGroup() {
+    return this.factory.bindGroups.create({
+      label: "Transform Bind Group",
+      entries: [this.getBindingEntry(this.factory.buffers)],
+    });
   }
 
   static get bindingEntryLayout() {

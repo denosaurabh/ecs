@@ -34,6 +34,8 @@ export type GlobalData = {
     multisample: { view: GPUTextureView };
     depth: { view: GPUTextureView };
   };
+
+  settings: Settings;
 };
 
 type Settings = {
@@ -88,7 +90,7 @@ export class GlobalSetup {
     this.factory = factory;
 
     this.geometry = new GEOMETRY_FACTORY(factory);
-    this.transform = new TransformManager(factory.buffers);
+    this.transform = new TransformManager(factory);
 
     ////////////////////////////////////////////////////////////////
     ////////////////      CREATE ENTITIES     //////////////////////
@@ -188,8 +190,8 @@ export class GlobalSetup {
           },
           timeEntry,
           playerPositionEntry,
-          sizeEntry,
           sunPositionEntry,
+          sizeEntry,
           cameraEyeEntry,
         ],
       });
@@ -206,8 +208,8 @@ export class GlobalSetup {
         },
         timeEntry,
         playerPositionEntry,
-        sizeEntry,
         sunPositionEntry,
+        sizeEntry,
         cameraEyeEntry,
       ],
     });
@@ -282,6 +284,8 @@ export class GlobalSetup {
         multisample: { view: this.multiSampleTextureView },
         depth: { view: this.depthTexture.createView() },
       },
+
+      settings: this.settings,
     };
   }
 }
