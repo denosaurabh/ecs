@@ -108,6 +108,48 @@ export const RenderGraph = (world: World) => {
   });
 
   ///////////////////////////////////////////////////////////////
+  const [deferredBindGroup, deferredBindGroupLayout] =
+    factory.bindGroups.create({
+      label: "deferred bind group",
+      entries: [
+        {
+          type: BindGroupEntryType.buffer({
+            type: "uniform",
+            minBindingSize: 4 * 16 * 2,
+          }),
+          resource: factory.buffers.getBindingResource(
+            sun.projViewAndInvProjViewBuffer
+          ),
+          visibility: GPUShaderStage.VERTEX,
+        },
+      ],
+    });
+
+  const [deferredShadowMapBinding, deferredShadowMapBindGroupLayout] =
+    factory.bindGroups.create({
+      label: "deferred shadow map bind group",
+      entries: [
+        {
+          type: BindGroupEntryType.sampler({
+            type: "comparison",
+          }),
+          resource: factory.textures.createSampler({
+            compare: "less",
+            magFilter: "linear",
+            minFilter: "linear",
+          }),
+          visibility: GPUShaderStage.FRAGMENT,
+        },
+        {
+          type: BindGroupEntryType.texture({
+            sampleType: "depth",
+          }),
+          resource: shadowDepthView,
+          visibility: GPUShaderStage.FRAGMENT,
+        },
+      ],
+    });
+
   const deferredShader = factory.shaders.create({
     label: "deferred shader",
     code: DeferredShader,
@@ -116,7 +158,12 @@ export const RenderGraph = (world: World) => {
   const [deferredPipeline] = factory.pipelines.create({
     label: "deferred pipeline",
     layout: {
-      bindGroups: [bindGroups.layout, transformBindGroupLayout],
+      bindGroups: [
+        bindGroups.layout,
+        transformBindGroupLayout,
+        deferredBindGroupLayout,
+        deferredShadowMapBindGroupLayout,
+      ],
     },
     shader: deferredShader,
     vertexBufferLayouts: [geometry.THREED_POSITION_NORMAL_LAYOUT],
@@ -324,6 +371,9 @@ export const RenderGraph = (world: World) => {
     });
 
     deferredPass.setBindGroup(0, bindGroups.main);
+    deferredPass.setBindGroup(2, deferredBindGroup);
+    deferredPass.setBindGroup(3, deferredShadowMapBinding);
+
     deferredPass.setPipeline(deferredPipeline);
 
     scene(deferredPass);

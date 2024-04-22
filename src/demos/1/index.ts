@@ -1,8 +1,6 @@
 import { Init } from "@core";
-import { GlobalSetup, MeshManager, RenderMode, World } from "@utils";
+import { GlobalSetup, MeshManager, World } from "@utils";
 
-import { Postprocess } from "./postprocess";
-import { Scene } from "./scene";
 import { RenderGraph } from "./render-graph";
 
 export const RunTriangle = async () => {
@@ -24,8 +22,6 @@ export const RunTriangle = async () => {
   // LOOP
   let animateId = 0;
   const loop = () => {
-    console.log("loop");
-
     globalSetup.tick();
 
     // render
@@ -44,6 +40,9 @@ export const RunTriangle = async () => {
     cancelAnimationFrame(animateId);
   };
 };
+
+/*
+
 
 export const _RunTriangle = async () => {
   const rendererData = await Init();
@@ -191,3 +190,6 @@ export const _RunTriangle = async () => {
     cancelAnimationFrame(animateId);
   };
 };
+
+
+*/

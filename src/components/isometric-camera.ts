@@ -17,7 +17,7 @@ export class IsometricCamera {
   private _target: [number, number, number] = [0, 0, 0];
   private _up: [number, number, number] = [0, 1, 0];
 
-  public readonly _projectionView: Float32Array = new Float32Array(16);
+  private readonly _projectionView: Float32Array = new Float32Array(16);
   public readonly projViewAndInvProjViewBuffer: GPUBuffer;
 
   constructor(

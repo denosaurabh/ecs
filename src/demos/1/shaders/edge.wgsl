@@ -61,7 +61,7 @@ fn fragmentMain(
     // on depth
     var texCoordsU = vec2<i32>(i32(texCoords.x * viewSize.x), i32(texCoords.y * viewSize.y));
 
-    const samplePoint = u32(1);
+    var samplePoint = u32(1);
     let tl: f32 = textureLoad(dTex, texCoordsU + vec2<i32>(-1,    1), samplePoint);
     let tt: f32 = textureLoad(dTex, texCoordsU + vec2<i32>(0,     1), samplePoint);
     let tr: f32 = textureLoad(dTex, texCoordsU + vec2<i32>(1,     1), samplePoint);
