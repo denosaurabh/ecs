@@ -35,6 +35,7 @@ export const Init = async (): Promise<RendererData> => {
 
   const width = window.innerWidth;
   const height = window.innerHeight;
+  console.log("width", width, "height", height);
 
   // set width & height here, setting in class="" will cause pixelation
   canvas.setAttribute("width", width.toString());

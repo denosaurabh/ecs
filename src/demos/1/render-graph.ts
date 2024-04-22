@@ -29,12 +29,6 @@ export const RenderGraph = (world: World) => {
   ///////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
   // SHADOW PASS
-  // const shadowTarget = factory.textures.createTexture({
-  //   size,
-  //   format,
-  //   usage,
-  // });
-  // const shadowTargetView = shadowTarget.createView();
 
   const shadowDepth = factory.textures.createTexture({
     size,
@@ -56,6 +50,17 @@ export const RenderGraph = (world: World) => {
     format,
     usage,
   });
+  const shadowRender = factory.textures.createTexture({
+    size,
+    format,
+    usage,
+  });
+  const surfaceIdRender = factory.textures.createTexture({
+    size,
+    format,
+    usage,
+  });
+
   const deferredDepth = factory.textures.createTexture({
     size,
     format: "depth24plus",
@@ -66,7 +71,7 @@ export const RenderGraph = (world: World) => {
   ///////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
   // SHADOWS
-  const shadowRender = factory.textures.createTexture({
+  const showShadowRender = factory.textures.createTexture({
     size,
     format,
     usage,
@@ -172,6 +177,12 @@ export const RenderGraph = (world: World) => {
       {
         format,
       },
+      {
+        format,
+      },
+      {
+        format,
+      },
     ],
     settings: {
       topology: "triangle-list",
@@ -220,13 +231,16 @@ export const RenderGraph = (world: World) => {
           resource: normalRender.createView(),
           visibility,
         },
-        // {
-        //   type: BindGroupEntryType.buffer({}),
-        //   resource: factory.buffers.getBindingResource(
-        //     transform.new().projViewAndInvProjViewBuffer
-        //   ),
-        //   visibility,
-        // },
+        {
+          type: BindGroupEntryType.texture({}),
+          resource: shadowRender.createView(),
+          visibility,
+        },
+        {
+          type: BindGroupEntryType.texture({}),
+          resource: surfaceIdRender.createView(),
+          visibility,
+        },
       ],
     });
 
@@ -278,7 +292,7 @@ export const RenderGraph = (world: World) => {
         },
         {
           type: BindGroupEntryType.texture({}),
-          resource: shadowRender.createView(),
+          resource: showShadowRender.createView(),
           visibility,
         },
       ],
@@ -317,13 +331,7 @@ export const RenderGraph = (world: World) => {
     // shadow pass
     const shadowPass = encoder.beginRenderPass({
       label: "shadow pass",
-      colorAttachments: [
-        // {
-        //   view: shadowTargetView,
-        //   loadOp: "clear",
-        //   storeOp: "store",
-        // },
-      ],
+      colorAttachments: [],
       depthStencilAttachment: {
         view: shadowDepthView,
         depthLoadOp: "clear",
@@ -358,6 +366,18 @@ export const RenderGraph = (world: World) => {
           storeOp: "store",
           clearValue: { r: 0, g: 0, b: 0, a: 1 },
         },
+        {
+          view: shadowRender.createView(),
+          loadOp: "clear",
+          storeOp: "store",
+          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+        },
+        {
+          view: surfaceIdRender.createView(),
+          loadOp: "clear",
+          storeOp: "store",
+          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+        },
       ],
       depthStencilAttachment: {
         view: deferredDepthView,
@@ -368,6 +388,7 @@ export const RenderGraph = (world: World) => {
     });
 
     deferredPass.setBindGroup(0, bindGroups.main);
+
     deferredPass.setBindGroup(2, deferredBindGroup);
     deferredPass.setBindGroup(3, deferredShadowMapBinding);
 
@@ -385,10 +406,11 @@ export const RenderGraph = (world: World) => {
       label: "shadow render pass",
       colorAttachments: [
         {
-          view: shadowRender.createView(),
+          view: showShadowRender.createView(),
           loadOp: "clear",
           storeOp: "store",
-          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          clearValue: { r: 0.9, g: 0.81, b: 0.66, a: 1 },
+          // clearValue: { r: 0, g: 0, b: 0, a: 1 },
         },
       ],
     });
@@ -412,7 +434,8 @@ export const RenderGraph = (world: World) => {
           view: context.getCurrentTexture().createView(),
           loadOp: "clear",
           storeOp: "store",
-          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          clearValue: { r: 0.9, g: 0.81, b: 0.66, a: 1 },
+          // clearValue: { r: 0, g: 0, b: 0, a: 1 },
         },
       ],
     });
