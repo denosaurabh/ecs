@@ -29,19 +29,17 @@ export const RenderGraph = (world: World) => {
   ///////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
   // SHADOW PASS
-  const shadowTarget = factory.textures.createTexture({
-    size,
-    format,
-    usage,
-    sampleCount: 1,
-  });
-  const shadowTargetView = shadowTarget.createView();
+  // const shadowTarget = factory.textures.createTexture({
+  //   size,
+  //   format,
+  //   usage,
+  // });
+  // const shadowTargetView = shadowTarget.createView();
 
   const shadowDepth = factory.textures.createTexture({
     size,
     format: "depth24plus",
     usage,
-    sampleCount: 1,
   });
   const shadowDepthView = shadowDepth.createView();
 
@@ -62,7 +60,6 @@ export const RenderGraph = (world: World) => {
     size,
     format: "depth24plus",
     usage,
-    sampleCount: 1,
   });
   const deferredDepthView = deferredDepth.createView();
 
@@ -97,9 +94,9 @@ export const RenderGraph = (world: World) => {
     vertexBufferLayouts: [geometry.THREED_POSITION_NORMAL_LAYOUT],
     depthStencil: "depth24plus|less|true",
     fragmentTargets: [
-      {
-        format,
-      },
+      // {
+      //   format,
+      // },
     ],
     settings: {
       topology: "triangle-list",
@@ -321,11 +318,11 @@ export const RenderGraph = (world: World) => {
     const shadowPass = encoder.beginRenderPass({
       label: "shadow pass",
       colorAttachments: [
-        {
-          view: shadowTargetView,
-          loadOp: "clear",
-          storeOp: "store",
-        },
+        // {
+        //   view: shadowTargetView,
+        //   loadOp: "clear",
+        //   storeOp: "store",
+        // },
       ],
       depthStencilAttachment: {
         view: shadowDepthView,
