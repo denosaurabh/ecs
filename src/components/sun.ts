@@ -6,7 +6,7 @@ export class SunControl {
 
   // temp
   private tempPosition: Vec3 = vec3.create();
-  private readonly delta = 0.01;
+  private readonly delta = 0.002;
 
   tick() {
     this.tempPosition = vec3.rotateZ(this.camera.eye, [0, 0, 0], this.delta);

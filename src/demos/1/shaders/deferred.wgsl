@@ -23,20 +23,10 @@ struct SunProjectionView {
 @group(2) @binding(0) var<uniform> sunPV : SunProjectionView;
 
 
-
-
-// vertex
-// struct VertexOutput {
-//     @builtin(position) Position : vec4f,
-//     @location(2) SunPosition: vec4f,
-//     @location(0) normal: vec3f,
-//     @location(1) color: vec3f,
-// }
-
 struct VertexOutput {
   @location(0) shadowPos: vec3f,
   @location(1) fragPos: vec3f,
-  @location(2) fragNorm: vec3f,
+  @location(2) normal: vec3f,
 
   @builtin(position) Position: vec4f,
 }
@@ -58,19 +48,11 @@ fn vertexMain(
         posFromLight.z
     );
 
-
-
-
-
     output.Position = pv.projView * model.modelMat * vec4f(position, 1.0);
-    // output.SunPosition = sunPV.projView * model.modelMat * vec4f(position, 1.0);
-
     output.fragPos = position.xyz;
 
     var thenewnormal = model.invModelMat * vec4f(normal, 0.0);
-    output.fragNorm = normalize(vec3f(thenewnormal.x, thenewnormal.y, thenewnormal.z));
-
-    // output.color = vec3(0.82, 0.64, 0.53);
+    output.normal = normalize(vec3f(thenewnormal.x, thenewnormal.y, thenewnormal.z));
 
     return output;
 }
@@ -94,13 +76,9 @@ const ambientFactor = 0.2;
 
 @fragment
 fn fragMain(
-//   @location(0) normal: vec3f,
-//   @location(1) color: vec3f,
-//   @location(2) SunPosition: vec4f,
 input: VertexOutput
 ) -> FragmentOutput {
     let shadowDepthTextureSize: f32 = size.x;
-
 
     // Percentage-closer filtering. Sample texels in the region
     // to smooth the result.
@@ -112,13 +90,13 @@ input: VertexOutput
 
         visibility += textureSampleCompare(
             depth, samp,
-            input.shadowPos.xy + offset, input.shadowPos.z - 0.007
+            input.shadowPos.xy + offset, input.shadowPos.z + 0.00 // 0.007
         );
         }
     }
     visibility /= 9.0;
 
-    let lambertFactor = max(dot(normalize(sunPos - input.fragPos), normalize(input.fragNorm)), 0.0);
+    let lambertFactor = max(dot(normalize(sunPos - input.fragPos), normalize(input.normal)), 0.0);
     let lightingFactor = min(ambientFactor + visibility * lambertFactor, 1.0);
 
 
@@ -126,7 +104,7 @@ input: VertexOutput
     var output: FragmentOutput;
 
     output.albedo = vec4f(lightingFactor * albedo, 1.0); // vec4f(finalColor, 1.0);
-    output.normal = vec4f(input.fragNorm, 1.0);
+    output.normal = vec4f(input.normal, 1.0);
 
     return output;
 

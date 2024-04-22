@@ -100,7 +100,7 @@ export const RenderGraph = (world: World) => {
     ],
     settings: {
       topology: "triangle-list",
-      cullMode: "back",
+      cullMode: "front",
     },
   });
 

@@ -5,7 +5,11 @@ export const Scene = (world: World) => {
 
   const geo = geometry.CUBE_WITH_NORMAL();
 
-  const cubeTransform = transform.new().translate(0, 0, 0).createBindGroup();
+  const cubeTransform = transform
+    .new()
+    .translate(0, 0, 0)
+    .scale(1, 10, 1)
+    .createBindGroup();
   const groundTransform = transform
     .new()
     .translate(0, 0, 0)
