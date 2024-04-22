@@ -9,7 +9,7 @@ export type BufferStorageDescriptor = {
   data?: Float32Array | Uint16Array | Uint32Array;
 };
 
-type VertexBufferLayout = {
+export type VertexBufferLayout = {
   step?: GPUVertexStepMode;
   beginLocationAt?: number;
 
@@ -101,7 +101,13 @@ export class BufferManager {
     });
 
     // layout
-    const bufferLayout = {
+    const bufferLayout = this.createVertexLayout(layout);
+
+    return [buffer, bufferLayout];
+  }
+
+  createVertexLayout(layout: VertexBufferLayout): GPUVertexBufferLayout {
+    return {
       stepMode: layout.step || "vertex",
       arrayStride: layout.attributes.reduce((prev, a) => {
         return prev + this.vertexFormatByteLength(a.format);
@@ -117,8 +123,6 @@ export class BufferManager {
         };
       }),
     };
-
-    return [buffer, bufferLayout];
   }
 
   write(buffer: GPUBuffer, data: Float32Array, offset: number = 0) {

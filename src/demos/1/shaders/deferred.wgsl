@@ -48,16 +48,11 @@ fn fragMain(
   @location(1) color: vec3f,
 ) -> FragmentOutput {
     var finalColor = color * max(0.6, dot(normalize(sunPos), normal));
-    // var finalColor = color;
-    // finalColor = abs(normal);
-    // finalColor = normal_mat.xyz;
-    // finalColor = vec3f( max(0.0, dot(normalize(sunPos), normal )) );
-
     var output: FragmentOutput;
 
     output.albedo = vec4f(finalColor, 1.0);
-    output.normal = vec4f(abs(normal), 1.0);
+    output.normal = vec4f(normal, 1.0);
 
-    // return vec4f(finalColor, 1.0);
     return output;
+    // return vec4f(finalColor, 1.0);
 }

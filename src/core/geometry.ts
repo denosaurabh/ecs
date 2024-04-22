@@ -1,4 +1,4 @@
-import { WGPUFactory } from "./factory";
+import { VertexBufferLayout, WGPUFactory } from "./factory";
 
 export type Geometry = {
   buffer: GPUBuffer;
@@ -258,6 +258,21 @@ export class GEOMETRY_FACTORY {
     };
 
     return data;
+  }
+
+  public get THREED_POSITION_NORMAL_LAYOUT(): GPUVertexBufferLayout {
+    return this.storage.buffers.createVertexLayout({
+      attributes: [
+        {
+          label: "POSITION",
+          format: "float32x3",
+        },
+        {
+          label: "NORMAL",
+          format: "float32x3",
+        },
+      ],
+    });
   }
 
   public CUBE_WITH_NORMAL(): Geometry {

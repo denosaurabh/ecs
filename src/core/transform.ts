@@ -126,6 +126,13 @@ export class Transform {
     });
   }
 
+  get bindGroupLayout(): GPUBindGroupLayout {
+    return this.factory.bindGroups.createLayout({
+      label: "transform bind group layout",
+      entries: [Transform.bindingEntryLayout],
+    });
+  }
+
   static get bindingEntryLayout() {
     return {
       visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,

@@ -1,4 +1,5 @@
 import { StorageManager } from "./storage";
+import { VertexBufferLayout } from "./storage/vertexbuffer";
 
 export type Geometry = {
   buffer: GPUBuffer;
@@ -260,6 +261,25 @@ export class GEOMETRY_FACTORY {
     return data;
   }
 
+  public get THREED_POSITION_NORMAL_LAYOUT(): VertexBufferLayout {
+    return {
+      attributes: [
+        {
+          label: "POSITION",
+          format: "float32x3",
+        },
+        {
+          label: "NORMAL",
+          format: "float32x3",
+        },
+        {
+          label: "UV",
+          format: "float32x2",
+        },
+      ],
+    };
+  }
+
   public CUBE_WITH_NORMAL(): Geometry {
     const topFaceData = () => {
       const topFaceNormal = [0, 0, 1];
@@ -392,18 +412,7 @@ export class GEOMETRY_FACTORY {
       label: "Cube-Normal geometry",
       data: verticies,
       writeAtCreation: true,
-      layout: {
-        attributes: [
-          {
-            label: "POSITION",
-            format: "float32x3",
-          },
-          {
-            label: "NORMAL",
-            format: "float32x3",
-          },
-        ],
-      },
+      layout: this.THREED_POSITION_NORMAL_LAYOUT,
     });
 
     const data = {

@@ -1,65 +1,24 @@
-import { RenderMode, World } from "@utils";
+import { World } from "@utils";
 
-import DiffuseShader from "./shaders/diffuse.wgsl?raw";
-import { BindGroupEntryType } from "@core";
-
-export const Scene = (world: World, shadowDepthtexture: GPUTexture) => {
-  const {
-    geometry,
-    transform,
-    factory,
-    rendererData: { format },
-    mesh,
-  } = world;
+export const Scene = (world: World) => {
+  const { geometry, transform } = world;
 
   const geo = geometry.CUBE_WITH_NORMAL();
-  const shader = factory.shaders.create({
-    code: DiffuseShader,
-  });
 
-  const formats = [{ format }, { format }];
+  const cubeTransform = transform.new().translate(0, 0, 0).createBindGroup();
+  const groundTransform = transform
+    .new()
+    .translate(0, 0, 0)
+    .scale(10, 0.1, 10)
+    .createBindGroup();
 
-  // shadow bind group
-  const sampler = factory.textures.createSampler({
-    magFilter: "linear",
-    minFilter: "linear",
-  });
+  return (pass: GPURenderPassEncoder) => {
+    pass.setVertexBuffer(0, geo.buffer);
 
-  const shadowBindGroup = factory.bindGroups.create({
-    label: "shadow bind group",
-    entries: [
-      {
-        resource: sampler,
-        type: BindGroupEntryType.sampler({}),
-        visibility: GPUShaderStage.FRAGMENT,
-      },
-      {
-        resource: shadowTextureView,
-        type: BindGroupEntryType.texture({
-          sampleType: "depth",
-          viewDimension: "2d",
-        }),
-        visibility: GPUShaderStage.FRAGMENT,
-      },
-    ],
-  });
+    pass.setBindGroup(1, cubeTransform[0]);
+    pass.draw(geo.vertexCount);
 
-  const cubeTransform = transform.new().translate(0, 0, 0);
-  const cube = mesh.new(geo, shader, {
-    label: "cubes pipeline",
-    transform: cubeTransform,
-    targets: formats,
-  });
-
-  const groundTransform = transform.new().translate(0, 0, 0).scale(10, 0.1, 10);
-  const ground = mesh.new(geo, shader, {
-    label: "ground pipeline",
-    transform: groundTransform,
-    targets: formats,
-  });
-
-  return (pass: GPURenderPassEncoder, mode: RenderMode) => {
-    cube.render(pass, mode);
-    ground.render(pass, mode);
+    pass.setBindGroup(1, groundTransform[0]);
+    pass.draw(geo.vertexCount);
   };
 };

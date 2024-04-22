@@ -3,8 +3,49 @@ import { GlobalSetup, MeshManager, RenderMode, World } from "@utils";
 
 import { Postprocess } from "./postprocess";
 import { Scene } from "./scene";
+import { RenderGraph } from "./render-graph";
 
 export const RunTriangle = async () => {
+  // SETUP
+  const rendererData = await Init();
+  const { device, format } = rendererData;
+  const globalSetup = new GlobalSetup(rendererData);
+  const mesh = new MeshManager({ ...globalSetup.data, format });
+
+  const world: World = {
+    ...globalSetup.data,
+    mesh,
+    rendererData,
+  };
+
+  // RUN
+  const renderGraph = RenderGraph(world);
+
+  // LOOP
+  let animateId = 0;
+  const loop = () => {
+    console.log("loop");
+
+    globalSetup.tick();
+
+    // render
+    const encoder = device.createCommandEncoder();
+
+    renderGraph(encoder);
+
+    device.queue.submit([encoder.finish()]);
+
+    // end
+    animateId = requestAnimationFrame(loop);
+  };
+  loop();
+
+  return () => {
+    cancelAnimationFrame(animateId);
+  };
+};
+
+export const _RunTriangle = async () => {
   const rendererData = await Init();
   const { device, format, size, context } = rendererData;
   const globalSetup = new GlobalSetup(rendererData);

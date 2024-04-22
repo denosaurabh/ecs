@@ -1,4 +1,4 @@
-type VertexBufferLayout = {
+export type VertexBufferLayout = {
   step?: GPUVertexStepMode;
   beginLocationAt?: number;
 
