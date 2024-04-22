@@ -53,7 +53,7 @@ async function setDemo(demo: string) {
       console.warn("select a demo");
       break;
     }
-    case "#triangle": {
+    case "#edges_shadowmap": {
       cleanup = await RunTriangle();
       break;
     }

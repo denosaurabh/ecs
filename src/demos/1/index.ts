@@ -3,7 +3,7 @@ import { GlobalSetup, MeshManager, World } from "@utils";
 
 import { RenderGraph } from "./render-graph";
 
-export const RunTriangle = async () => {
+export const RunEdgesAndShadowMap = async () => {
   // SETUP
   const rendererData = await Init();
   const { device, format } = rendererData;
