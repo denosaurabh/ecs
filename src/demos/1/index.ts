@@ -1,31 +1,79 @@
 import { Init } from "@core";
-import { GlobalSetup, MeshManager } from "@utils";
+import { GlobalSetup, MeshManager, RenderMode, World } from "@utils";
 
-import DiffuseShader from "./diffuse.wgsl?raw";
+import { Postprocess } from "./postprocess";
+import { Scene } from "./scene";
 
 export const RunTriangle = async () => {
   const rendererData = await Init();
-  const { device, context } = rendererData;
-
+  const { device, format, size, context } = rendererData;
   const globalSetup = new GlobalSetup(rendererData);
+  const { factory, textures } = globalSetup.data;
+  const mesh = new MeshManager({ ...globalSetup.data, format });
 
-  const { factory, geometry, textures, transform } = globalSetup.data;
+  const world: World = {
+    ...globalSetup.data,
+    mesh,
+    rendererData,
+  };
 
-  const mesh = new MeshManager(globalSetup.data);
+  // textures
 
-  // objects
-  const geo = geometry.CUBE_WITH_NORMAL();
-
-  const shader = factory.shaders.create({
-    code: DiffuseShader,
+  // SHADOW PASS
+  const shadowTarget = factory.textures.createTexture({
+    size,
+    format,
+    usage:
+      GPUTextureUsage.RENDER_ATTACHMENT |
+      GPUTextureUsage.COPY_SRC |
+      GPUTextureUsage.TEXTURE_BINDING,
   });
 
-  const cubeTransform = transform.new().translate(0, 0, 0);
+  const shadowDepth = factory.textures.createTexture({
+    size,
+    format: "depth24plus",
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+  const shadowDepthView = shadowDepth.createView();
 
-  const cube = mesh.new(geo, shader);
-  cube.setTransform(cubeTransform);
+  // RENDER PASS
+  const normalRender = factory.textures.createTexture({
+    size,
+    format,
+    usage:
+      GPUTextureUsage.RENDER_ATTACHMENT |
+      GPUTextureUsage.COPY_SRC |
+      GPUTextureUsage.TEXTURE_BINDING,
+  });
+  const albedoRender = factory.textures.createTexture({
+    size,
+    format,
+    usage:
+      GPUTextureUsage.RENDER_ATTACHMENT |
+      GPUTextureUsage.COPY_SRC |
+      GPUTextureUsage.TEXTURE_BINDING,
+  });
 
-  cube.intitialize();
+  const anotherMultiSampleTexture = factory.textures
+    .createTexture({
+      size,
+      format,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      sampleCount: 4,
+      depthOrArrayLayers: 1,
+    })
+    .createView();
+
+  // scene
+  const scene = Scene(world);
+
+  // postprocess
+  const postprocess = Postprocess(world, {
+    textures: {
+      albedo: albedoRender,
+      normal: normalRender,
+    },
+  });
 
   let animateId = 0;
   const loop = () => {
@@ -34,17 +82,42 @@ export const RunTriangle = async () => {
     // render
     const encoder = device.createCommandEncoder();
 
+    const shadowPass = encoder.beginRenderPass({
+      label: "shadows cubes",
+      colorAttachments: [
+        {
+          view: shadowTarget.createView(),
+          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          loadOp: "clear",
+          storeOp: "store",
+        },
+      ],
+      depthStencilAttachment: {
+        view: shadowDepthView,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+        depthClearValue: 1.0,
+      },
+    });
+
+    scene(shadowPass, RenderMode.SHADOW);
+
+    shadowPass.end();
+
     const pass = encoder.beginRenderPass({
+      label: "cubes",
       colorAttachments: [
         {
           view: textures.multisample.view,
-          resolveTarget: context.getCurrentTexture().createView(),
-          clearValue: {
-            r: 0.91,
-            g: 0.82,
-            b: 0.68,
-            a: 1,
-          },
+          resolveTarget: albedoRender.createView(),
+          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          loadOp: "clear",
+          storeOp: "store",
+        },
+        {
+          view: anotherMultiSampleTexture,
+          resolveTarget: normalRender.createView(),
+          clearValue: { r: 0, g: 0, b: 0, a: 1 },
           loadOp: "clear",
           storeOp: "store",
         },
@@ -57,9 +130,14 @@ export const RunTriangle = async () => {
       },
     });
 
-    cube.render(pass, "MAIN");
+    scene(pass, RenderMode.MAIN);
 
     pass.end();
+
+    // postprocess
+    postprocess(encoder, context.getCurrentTexture().createView());
+
+    // compute pipelines
 
     device.queue.submit([encoder.finish()]);
 

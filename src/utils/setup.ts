@@ -32,7 +32,7 @@ export type GlobalData = {
 
   textures: {
     multisample: { view: GPUTextureView };
-    depth: { view: GPUTextureView };
+    depth: { texture: GPUTexture; view: GPUTextureView };
   };
 
   settings: Settings;
@@ -156,7 +156,7 @@ export class GlobalSetup {
         minBindingSize: 8,
       }),
       resource: factory.buffers.getBindingResource(sizeBuffer),
-      visibility: GPUShaderStage.VERTEX,
+      visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
     };
 
     const sunPositionEntry = {
@@ -282,7 +282,10 @@ export class GlobalSetup {
 
       textures: {
         multisample: { view: this.multiSampleTextureView },
-        depth: { view: this.depthTexture.createView() },
+        depth: {
+          texture: this.depthTexture,
+          view: this.depthTexture.createView(),
+        },
       },
 
       settings: this.settings,

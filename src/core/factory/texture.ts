@@ -14,7 +14,7 @@ type CreateTexureProps = {
   /**
    * default - `rgba8unorm`
    */
-  format?: GPUTextureFormat;
+  format: GPUTextureFormat;
 
   sampleCount?: number;
 };
@@ -29,7 +29,7 @@ export class TextureManager {
         height: textureProps.size.height,
         depthOrArrayLayers: textureProps.depthOrArrayLayers || 1,
       },
-      format: textureProps.format || "rgba8unorm",
+      format: textureProps.format,
       usage: textureProps.usage,
       sampleCount: textureProps.sampleCount,
     };

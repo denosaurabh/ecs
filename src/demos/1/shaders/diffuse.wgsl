@@ -36,16 +36,28 @@ fn vertexMain(
     return output;
 }
 
+
+struct FragmentOutput {
+    @location(0) albedo: vec4<f32>,
+    @location(1) normal: vec4<f32>
+};
+
 @fragment
 fn fragMain(
   @location(0) normal: vec3f,
   @location(1) color: vec3f,
-) -> @location(0) vec4f {
+) -> FragmentOutput {
     var finalColor = color * max(0.6, dot(normalize(sunPos), normal));
     // var finalColor = color;
     // finalColor = abs(normal);
     // finalColor = normal_mat.xyz;
     // finalColor = vec3f( max(0.0, dot(normalize(sunPos), normal )) );
 
-    return vec4f(finalColor, 1.0);
+    var output: FragmentOutput;
+
+    output.albedo = vec4f(finalColor, 1.0);
+    output.normal = vec4f(abs(normal), 1.0);
+
+    // return vec4f(finalColor, 1.0);
+    return output;
 }

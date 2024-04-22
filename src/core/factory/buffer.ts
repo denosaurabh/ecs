@@ -6,7 +6,7 @@ export type BufferStorageDescriptor = {
 
   writeAtCreation?: boolean;
 
-  data?: Float32Array | Uint16Array;
+  data?: Float32Array | Uint16Array | Uint32Array;
 };
 
 type VertexBufferLayout = {
@@ -43,7 +43,7 @@ export class BufferManager {
     if (descriptor.writeAtCreation && descriptor.data) {
       const mappedRange = buffer.getMappedRange();
 
-      let dataArray: Float32Array | Uint16Array;
+      let dataArray: BufferStorageDescriptor["data"];
 
       switch (descriptor.data?.constructor) {
         case Float32Array:
@@ -53,6 +53,11 @@ export class BufferManager {
           break;
         case Uint16Array:
           dataArray = new Uint16Array(mappedRange);
+          dataArray.set(descriptor.data);
+
+          break;
+        case Uint32Array:
+          dataArray = new Uint32Array(mappedRange);
           dataArray.set(descriptor.data);
 
           break;

@@ -16,16 +16,12 @@ export type CreatePipelineProps = {
   shader: Shader;
   vertexBufferLayouts: GPUVertexBufferLayout[];
 
-  /**
-   * default format - `bgra8unorm`
-   */
-  fragmentTargets?: {
-    removeDefault?: boolean;
-    targets: GPUColorTargetState[];
-  };
+  fragmentTargets: GPUColorTargetState[];
 
   depthStencil?: "depth24plus|less|true";
   multisample?: GPUMultisampleState;
+
+  constants?: GPUProgrammableStage["constants"];
 
   settings?: {
     /**
@@ -37,6 +33,18 @@ export type CreatePipelineProps = {
      */
     cullMode?: GPUCullMode;
   };
+};
+
+type CreateComputePipelineProps = {
+  label: string;
+  layout?:
+    | "auto"
+    | {
+        label?: string;
+        bindGroups?: GPUBindGroupLayout[];
+      };
+
+  shader: Shader;
 };
 
 export class PipelineManager {
@@ -51,6 +59,7 @@ export class PipelineManager {
       shader,
       vertexBufferLayouts,
       fragmentTargets,
+      constants,
       depthStencil: descriptorDepthStencil,
       multisample,
       settings,
@@ -75,19 +84,6 @@ export class PipelineManager {
     }
 
     ////// gpu pipeline
-
-    // fragment targets
-    const targets: GPUColorTargetState[] = [];
-
-    if (!fragmentTargets?.removeDefault) {
-      targets.push({
-        format: "bgra8unorm",
-      });
-    }
-
-    if (fragmentTargets) {
-      targets.push(...fragmentTargets.targets);
-    }
 
     // depth stencil
     let depthStencil: GPUDepthStencilState | undefined;
@@ -121,7 +117,8 @@ export class PipelineManager {
       fragment: {
         module: shaderModule,
         entryPoint: frag,
-        targets,
+        targets: fragmentTargets,
+        constants,
       },
       primitive: {
         topology: settings?.topology || "triangle-list",
@@ -133,5 +130,39 @@ export class PipelineManager {
     const gpuPipeline = this.device.createRenderPipeline(pipelineDescriptor);
 
     return [gpuPipeline, layout];
+  }
+
+  createComputePipeline(
+    descriptor: CreateComputePipelineProps
+  ): GPUComputePipeline {
+    const { label, layout: descLayout, shader } = descriptor;
+
+    ////// pipeline layout
+    let layout: "auto" | GPUPipelineLayout = "auto";
+
+    if (typeof descLayout === "object") {
+      if (!descLayout.bindGroups) {
+        throw new Error(
+          "bindGroups are required if layout type is 'usebindgroups'"
+        );
+      }
+
+      layout = this.device.createPipelineLayout({
+        label: descLayout.label,
+        bindGroupLayouts: descLayout.bindGroups,
+      });
+    }
+
+    const pipeline = this.device.createComputePipeline({
+      label,
+      layout,
+
+      compute: {
+        module: shader[0],
+        entryPoint: shader[1].compute,
+      },
+    });
+
+    return pipeline;
   }
 }
