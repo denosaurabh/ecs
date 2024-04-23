@@ -23,24 +23,10 @@
     "paths": {
       "@core": ["src/core/index"],
       "@demos": ["src/demos/index"],
-      "@utils": ["src/utils/index"],
-
-      "@ecs": ["src-old/core-old/ecs/index"],
-      "@storage": ["src-old/core-old/storage/index"],
-      "@rendergraph": ["src-old/core-old/rendergraph/index"],
-      "@3d/*": ["src-old/core-old/3d/*"]
+      "@utils": ["src/utils/index"]
     },
 
     "types": ["@webgpu/types"]
   },
-  "include": [
-    "src",
-    "src-old/examples",
-    "src-old/core-old",
-    "src-old/tests",
-    "src-old/experiments",
-    "src-old/examples-2",
-    "src-old/utils.ts",
-    "src-old/main-2.ts"
-  ]
+  "include": ["src"]
 }

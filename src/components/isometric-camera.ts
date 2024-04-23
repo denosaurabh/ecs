@@ -1,5 +1,4 @@
-import { WGPUFactory } from "@core";
-import { mat4 } from "wgpu-matrix";
+import { WGPUFactory, mat4 } from "@core";
 
 export class IsometricCamera {
   private near: number = 0.001;

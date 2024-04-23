@@ -1,4 +1,4 @@
-import { Vec3, vec3 } from "wgpu-matrix";
+import { Vec3, vec3 } from "@core";
 import { IsometricCamera } from "./isometric-camera";
 
 export class SunControl {

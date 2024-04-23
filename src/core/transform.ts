@@ -1,4 +1,4 @@
-import { Mat4, mat4, Vec3 } from "wgpu-matrix";
+import { Mat4, mat4, Vec3 } from "./";
 import { BufferManager } from "./factory/buffer";
 import { BindGroupEntryType, WGPUFactory } from "./factory";
 import { BindGroupEntry } from "./factory/bindgroup";

@@ -6,3 +6,5 @@ export * from "./materials";
 
 export * from "./transform";
 export * from "./utils";
+
+export * from "./wgpu-matrix";
