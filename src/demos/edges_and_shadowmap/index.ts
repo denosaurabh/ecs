@@ -37,6 +37,7 @@ export const EdgesAndShadowMap = async () => {
   loop();
 
   return () => {
+    device.destroy();
     cancelAnimationFrame(animateId);
   };
 };

@@ -81,8 +81,6 @@ export class OBJLoader {
 
         continue;
       }
-
-      console.log({ vertices, normals, uvs, faces });
     }
 
     // create Float32Array

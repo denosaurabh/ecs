@@ -1,8 +1,8 @@
 import { Init, OBJLoader } from "@core";
 import { GlobalSetup, MeshManager, World } from "@utils";
 
-import CubeOBJ from "./models/cube-triangulated-mesh.obj?raw";
-import CubeOBJShader from "./shaders/cube-obj.wgsl?raw";
+import OBJModel from "./models/monke-smooth.obj?raw";
+import OBJShader from "./shaders/cube-obj.wgsl?raw";
 
 export const ImportObj = async () => {
   // SETUP
@@ -20,12 +20,11 @@ export const ImportObj = async () => {
   // RUN
   const objLoader = new OBJLoader();
 
-  const cubeModel = objLoader.parse(CubeOBJ);
-  console.log(cubeModel);
+  const objModel = objLoader.parse(OBJModel);
 
   const [vertexBuffer, vertexBufferLayout] = objLoader.createBuffer(
     world.factory,
-    cubeModel
+    objModel
   );
 
   // pipeline
@@ -36,7 +35,7 @@ export const ImportObj = async () => {
     .createBindGroup();
 
   const cubeObjShader = world.factory.shaders.create({
-    code: CubeOBJShader,
+    code: OBJShader,
   });
 
   const [pipeline] = world.factory.pipelines.create({
@@ -51,6 +50,8 @@ export const ImportObj = async () => {
       cullMode: "back",
       topology: "triangle-list",
     },
+    depthStencil: "depth24plus|less|true",
+    multisample: world.settings.multisample,
   });
 
   // LOOP
@@ -64,12 +65,19 @@ export const ImportObj = async () => {
     const pass = encoder.beginRenderPass({
       colorAttachments: [
         {
-          view: context.getCurrentTexture().createView(),
+          view: world.textures.multisample.view,
+          resolveTarget: context.getCurrentTexture().createView(),
           clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
           loadOp: "clear",
           storeOp: "store",
         },
       ],
+      depthStencilAttachment: {
+        view: world.textures.depth.view,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+        depthClearValue: 1.0,
+      },
     });
 
     pass.setPipeline(pipeline);
@@ -79,7 +87,7 @@ export const ImportObj = async () => {
 
     pass.setVertexBuffer(0, vertexBuffer);
 
-    pass.draw(cubeModel.vertexCount, 1);
+    pass.draw(objModel.vertexCount, 1);
 
     pass.end();
 
@@ -91,6 +99,7 @@ export const ImportObj = async () => {
   loop();
 
   return () => {
+    device.destroy();
     cancelAnimationFrame(animateId);
   };
 };
