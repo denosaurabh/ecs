@@ -1,4 +1,4 @@
-import { GlobalData } from "./setup";
+// import { GlobalData } from "./setup";
 
 // export class TextureTransformManager {
 //   constructor(private world: GlobalData) {}

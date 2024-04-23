@@ -1,4 +1,4 @@
-import { VertexBufferLayout, WGPUFactory } from "./factory";
+import { WGPUFactory } from "./factory";
 
 export type Geometry = {
   buffer: GPUBuffer;
