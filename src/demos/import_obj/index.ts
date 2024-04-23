@@ -19,12 +19,9 @@ export const ImportObj = async () => {
 
   // RUN
   const objLoader = new OBJLoader();
-
-  const objModel = objLoader.parse(OBJModel);
-
-  const [vertexBuffer, vertexBufferLayout] = objLoader.createBuffer(
-    world.factory,
-    objModel
+  const { vertexCount, vertexBuffer, vertexLayout } = objLoader.load(
+    OBJModel,
+    world.factory
   );
 
   // pipeline
@@ -44,7 +41,7 @@ export const ImportObj = async () => {
       bindGroups: [world.bindGroups.layout, transformLayout],
     },
     shader: cubeObjShader,
-    vertexBufferLayouts: [vertexBufferLayout],
+    vertexBufferLayouts: [vertexLayout],
     fragmentTargets: [{ format }],
     settings: {
       cullMode: "back",
@@ -87,7 +84,7 @@ export const ImportObj = async () => {
 
     pass.setVertexBuffer(0, vertexBuffer);
 
-    pass.draw(objModel.vertexCount, 1);
+    pass.draw(vertexCount, 1);
 
     pass.end();
 

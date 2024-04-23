@@ -10,6 +10,18 @@ type ParsedDataReturn = {
 export class OBJLoader {
   constructor() {}
 
+  load(model: string, factory: WGPUFactory) {
+    const data = this.parse(model);
+    const [buffer, layout] = this.createBuffer(factory, this.parse(model));
+
+    return {
+      name: data.name,
+      vertexCount: data.vertexCount,
+      vertexBuffer: buffer,
+      vertexLayout: layout,
+    };
+  }
+
   parse(data: string): ParsedDataReturn {
     const lines = data.split("\n");
 
