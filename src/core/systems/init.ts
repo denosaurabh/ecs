@@ -9,7 +9,12 @@ export type RendererData = {
 
 export const Init = async (): Promise<RendererData> => {
   if (!navigator.gpu) {
-    alert("WebGPU is not supported on your browser!");
+    alert(`
+  WebGPU is not supported on your browser/platform  :(
+
+  Supported browsers: Chrome, Brave, Arc, Edge, Opera.
+  Supported platforms: Windows, MacOS.
+    `);
     throw new Error("WebGPU is not supported on your browser!");
   }
 

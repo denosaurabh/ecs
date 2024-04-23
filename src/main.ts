@@ -1,6 +1,6 @@
 import "./index.css";
 
-import { RunEdgesAndShadowMap } from "./demos";
+import { EdgesAndShadowMap, ImportObj } from "./demos";
 
 let cleanup: () => void;
 
@@ -54,11 +54,12 @@ async function setDemo(demo: string) {
       break;
     }
     case "#edges_shadowmap": {
-      cleanup = await RunEdgesAndShadowMap();
+      cleanup = await EdgesAndShadowMap();
       break;
     }
-    case "#outlines": {
+    case "#import_obj": {
       // TODO
+      cleanup = await ImportObj();
       break;
     }
     default: {

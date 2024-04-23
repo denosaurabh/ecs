@@ -26,7 +26,7 @@ export class ShaderManager {
 
     if (!vertex && !frag && !compute) {
       throw new Error(
-        `Could not find neither vertex, frag or compute function in given shader code`
+        `Could not find neither vertex, frag nor compute function in given shader code`
       );
     }
 

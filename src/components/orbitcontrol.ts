@@ -35,7 +35,7 @@ export class OrbitControl {
   private rotating = false;
 
   private onMouseDown = (e: MouseEvent) => {
-    e.preventDefault();
+    // e.preventDefault();
 
     if (e.button === 0) {
       // LEFT MOUSE BUTTON

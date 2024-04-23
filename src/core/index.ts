@@ -8,3 +8,4 @@ export * from "./transform";
 export * from "./utils";
 
 export * from "./wgpu-matrix";
+export * from "./obj-import";
