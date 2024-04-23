@@ -1,10 +1,10 @@
-import { Init, OBJLoader } from "@core";
+import { BindGroupEntryType, Init, OBJLoader } from "@core";
 import { GlobalSetup, MeshManager, World } from "@utils";
 
-import OBJModel from "./models/monke-smooth.obj?raw";
-import OBJShader from "./shaders/model.wgsl?raw";
+import GrassBladeModel from "./models/grass-blade-smooth-normals.obj?raw";
+import GrassShader from "./shaders/grass.wgsl?raw";
 
-export const ImportObj = async () => {
+export const Foliage = async () => {
   // SETUP
   const rendererData = await Init();
   const { device, format, context } = rendererData;
@@ -19,12 +19,30 @@ export const ImportObj = async () => {
 
   // RUN
   const objLoader = new OBJLoader();
-  const { vertexCount, vertexBuffer, vertexLayout } = objLoader.load(
-    OBJModel,
+  const { name, vertexCount, vertexBuffer, vertexLayout } = objLoader.load(
+    GrassBladeModel,
     world.factory
   );
 
   // pipeline
+  const instances = 1000;
+  const instancesBuffer = world.factory.buffers.createUniform(
+    new Uint32Array([instances]),
+    "grass instances"
+  );
+
+  const [instancesBind, instancesLayout] = world.factory.bindGroups.create({
+    label: "grass instances",
+    entries: [
+      {
+        resource: world.factory.buffers.getBindingResource(instancesBuffer),
+        visibility: GPUShaderStage.VERTEX,
+        type: BindGroupEntryType.buffer({
+          type: "uniform",
+        }),
+      },
+    ],
+  });
 
   const [transformBind, transformLayout] = world.transform
     .new()
@@ -32,19 +50,19 @@ export const ImportObj = async () => {
     .createBindGroup();
 
   const cubeObjShader = world.factory.shaders.create({
-    code: OBJShader,
+    code: GrassShader,
   });
 
   const [pipeline] = world.factory.pipelines.create({
-    label: "Model OBJ",
+    label: name,
     layout: {
-      bindGroups: [world.bindGroups.layout, transformLayout],
+      bindGroups: [world.bindGroups.layout, transformLayout, instancesLayout],
     },
     shader: cubeObjShader,
     vertexBufferLayouts: [vertexLayout],
     fragmentTargets: [{ format }],
     settings: {
-      cullMode: "back",
+      cullMode: "none",
       topology: "triangle-list",
     },
     depthStencil: "depth24plus|less|true",
@@ -81,10 +99,11 @@ export const ImportObj = async () => {
 
     pass.setBindGroup(0, world.bindGroups.main);
     pass.setBindGroup(1, transformBind);
+    pass.setBindGroup(2, instancesBind);
 
     pass.setVertexBuffer(0, vertexBuffer);
 
-    pass.draw(vertexCount, 1);
+    pass.draw(vertexCount, instances);
 
     pass.end();
 

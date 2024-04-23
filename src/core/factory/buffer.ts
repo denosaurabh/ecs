@@ -72,7 +72,10 @@ export class BufferManager {
     return buffer;
   }
 
-  createUniform(data: Float32Array, label?: string) {
+  createUniform(
+    data: Float32Array | Uint16Array | Uint32Array,
+    label?: string
+  ) {
     return this.create({
       label,
       data,

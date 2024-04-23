@@ -1,6 +1,6 @@
 import "./index.css";
 
-import { EdgesAndShadowMap, ImportObj } from "./demos";
+import { EdgesAndShadowMap, ImportObj, Foliage } from "./demos";
 
 let cleanup: () => void;
 
@@ -58,8 +58,11 @@ async function setDemo(demo: string) {
       break;
     }
     case "#import_obj": {
-      // TODO
       cleanup = await ImportObj();
+      break;
+    }
+    case "#foliage": {
+      cleanup = await Foliage();
       break;
     }
     default: {
