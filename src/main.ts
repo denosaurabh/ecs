@@ -1,6 +1,6 @@
 import "./index.css";
 
-import { RunTriangle } from "./demos";
+import { RunEdgesAndShadowMap } from "./demos";
 
 let cleanup: () => void;
 
@@ -54,7 +54,7 @@ async function setDemo(demo: string) {
       break;
     }
     case "#edges_shadowmap": {
-      cleanup = await RunTriangle();
+      cleanup = await RunEdgesAndShadowMap();
       break;
     }
     case "#outlines": {

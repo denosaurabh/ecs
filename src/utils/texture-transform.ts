@@ -12,7 +12,7 @@
 //   constructor(private world: GlobalData, from: GPUTexture, to: GPUTexture) {}
 // }
 
-const textureTransformFromBGRA8UNORMtoRGBA8UNORM = (
+export const textureTransformFromBGRA8UNORMtoRGBA8UNORM = (
   device: GPUDevice,
   from: GPUTexture,
   to: GPUTexture

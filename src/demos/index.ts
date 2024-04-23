@@ -1,1 +1,1 @@
-export { RunEdgesAndShadowMap as RunTriangle } from "./1";
+export { RunEdgesAndShadowMap } from "./edges_and_shadowmap";
