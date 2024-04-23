@@ -2,7 +2,7 @@ import { Init, OBJLoader } from "@core";
 import { GlobalSetup, MeshManager, World } from "@utils";
 
 import OBJModel from "./models/monke-smooth.obj?raw";
-import OBJShader from "./shaders/cube-obj.wgsl?raw";
+import OBJShader from "./shaders/model.wgsl?raw";
 
 export const ImportObj = async () => {
   // SETUP
