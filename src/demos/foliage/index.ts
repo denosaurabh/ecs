@@ -82,7 +82,7 @@ export const Foliage = async () => {
         {
           view: world.textures.multisample.view,
           resolveTarget: context.getCurrentTexture().createView(),
-          clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+          clearValue: { r: 0.48, g: 0.65, b: 0.76, a: 1.0 },
           loadOp: "clear",
           storeOp: "store",
         },
