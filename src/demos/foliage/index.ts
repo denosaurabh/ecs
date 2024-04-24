@@ -25,7 +25,7 @@ export const Foliage = async () => {
   );
 
   // pipeline
-  const instances = 1000;
+  const instances = 10000;
   const instancesBuffer = world.factory.buffers.createUniform(
     new Uint32Array([instances]),
     "grass instances"
