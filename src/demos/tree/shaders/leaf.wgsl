@@ -21,6 +21,9 @@ struct VertexInput {
     @location(0) position: vec3f,
     @location(1) normal: vec3f,
     @location(2) uv: vec2f,
+    // instance data
+    @location(3) translation: vec3f,
+    // @location(4) scale: f32,
 }
 
 struct VertexOutput {
@@ -34,37 +37,16 @@ struct VertexOutput {
 fn vertMain(input: VertexInput) -> VertexOutput {
     var pos = input.position;
 
-    var totalInstancesSqrt = sqrt(f32(totalInstances));
-    var id = vec2f(f32(input.InstanceIndex) % f32(totalInstancesSqrt), f32(input.InstanceIndex) / f32(totalInstancesSqrt));
+    let angle = atan2(input.translation.x, input.translation.z);
 
+    let c = cos(angle);
+    let s = sin(angle);
 
-    // random scaling
-    var scale = 1. + perlinNoise2(id);
-    pos *= scale;
+    let deg = (angle * -0.34906585); // + ((3.14) + angle * -0.34906585);
+    pos = vec3f(pos.x * cos(deg) - pos.y * sin(deg), pos.x * sin(deg) + pos.y * cos(deg), pos.z);
 
-    // curved blade
-    var power = 2.;
-    var offset = pow(2.718, (power * (1. - input.uv.x)) - power);
-    pos.x += offset * 1.5 * (noise2(id) * 2. - 1.); //  * sin(time + (rand(input.InstanceIndex) * 0.5 * (rand(input.InstanceIndex) + 1. * 10.)));
-
-    // rotate around y
-    var angle = 3.141 * 2. * perlinNoise2(id);
-    var x = pos.x * cos(angle) - pos.z * sin(angle);
-    var z = pos.x * sin(angle) + pos.z * cos(angle);
-
-    pos.x = x;
-    pos.z = z;
-
-    // square position
-    var groupiness = .2;
-
-    pos.x += f32(totalInstancesSqrt/(2. / groupiness)) - (groupiness * (f32(input.InstanceIndex) % f32(totalInstancesSqrt))  );
-    pos.z += f32(totalInstancesSqrt/(2. / groupiness)) - (groupiness * (f32(input.InstanceIndex) / f32(totalInstancesSqrt))  );
-
-    // position offset
-    pos.x += 2. * (noise2(id) * 2. - 1.);
-    pos.z += 2. * (noise2(id + f32(totalInstances)) * 2. - 1.);
-
+    pos += 20. * input.translation;
+    pos *=  0.5;
 
     // OUTPUT
     var output: VertexOutput;
@@ -81,25 +63,29 @@ fn vertMain(input: VertexInput) -> VertexOutput {
 
 }
 
-
 const albedoTop = vec3f(0.656, 0.876, 0.493); 
 const albedoBottom = vec3f(0.236, 0.568, 0.456); // 0.143, 0.529, 0.394
 
 @fragment
 fn fragMain(input: VertexOutput) -> @location(0) vec4f {
-    var albedo = mix(albedoTop, albedoBottom, input.uv.x);
-
-    var color = vec3f(0.0);
-
-    // modifies uv.x
-    var power = 4.;
-    var offset = pow(2.718, (power * (1. - input.uv.x)) - power);
-    color = (offset * albedoTop) + ((1. - offset) * albedoBottom);
-    
-    color *= min( 0.9, dot(vec3f(1, 0, 0), normalize(input.normal)) );
+    var color = albedoTop;
+    color = input.normal;
 
     return vec4f(color, 1.0);
 }
+
+
+
+
+
+
+/* ************************************************************************************ */
+/* ************************************************************************************ */
+/* ************************************************************************************ */
+/* ************************************************************************************ */
+
+
+
 
 
 fn rand(x: f32) -> f32 {

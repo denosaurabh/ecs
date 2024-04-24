@@ -1,8 +1,12 @@
 import { BindGroupEntryType, Init, OBJLoader } from "@core";
 import { GlobalSetup, MeshManager, World } from "@utils";
 
-import GrassBladeModel from "./models/grass-blade-smooth-normals.obj?raw";
-import GrassShader from "./shaders/grass.wgsl?raw";
+import LeafModel from "./models/leaf.obj?raw";
+import LeafShader from "./shaders/leaf.wgsl?raw";
+
+import LeafPoints from "./models/points.obj?raw";
+
+import { InstancesBufferLoader } from "./load-instances-buffer";
 
 export const Tree = async () => {
   // SETUP
@@ -20,14 +24,18 @@ export const Tree = async () => {
   // RUN
   const objLoader = new OBJLoader();
   const { name, vertexCount, vertexBuffer, vertexLayout } = objLoader.load(
-    GrassBladeModel,
+    LeafModel,
     world.factory
   );
 
   // pipeline
-  const instances = 10000;
+
+  const loadPoints = new InstancesBufferLoader();
+  const { instanceCount, instanceBuffer, instanceBufferLayout } =
+    loadPoints.load(LeafPoints, world.factory, 3);
+
   const instancesBuffer = world.factory.buffers.createUniform(
-    new Uint32Array([instances]),
+    new Uint32Array([instanceCount]),
     "grass instances"
   );
 
@@ -50,7 +58,7 @@ export const Tree = async () => {
     .createBindGroup();
 
   const cubeObjShader = world.factory.shaders.create({
-    code: GrassShader,
+    code: LeafShader,
   });
 
   const [pipeline] = world.factory.pipelines.create({
@@ -59,7 +67,7 @@ export const Tree = async () => {
       bindGroups: [world.bindGroups.layout, transformLayout, instancesLayout],
     },
     shader: cubeObjShader,
-    vertexBufferLayouts: [vertexLayout],
+    vertexBufferLayouts: [vertexLayout, instanceBufferLayout],
     fragmentTargets: [{ format }],
     settings: {
       cullMode: "none",
@@ -102,8 +110,9 @@ export const Tree = async () => {
     pass.setBindGroup(2, instancesBind);
 
     pass.setVertexBuffer(0, vertexBuffer);
+    pass.setVertexBuffer(1, instanceBuffer);
 
-    pass.draw(vertexCount, instances);
+    pass.draw(vertexCount, instanceCount);
 
     pass.end();
 
