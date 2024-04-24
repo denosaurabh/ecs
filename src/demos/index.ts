@@ -1,3 +1,4 @@
 export { EdgesAndShadowMap } from "./edges_and_shadowmap";
 export { ImportObj } from "./import_obj";
-export { Foliage } from "./foliage";
+export { Grass } from "./grass";
+export { Tree } from "./tree";

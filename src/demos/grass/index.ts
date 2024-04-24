@@ -4,7 +4,7 @@ import { GlobalSetup, MeshManager, World } from "@utils";
 import GrassBladeModel from "./models/grass-blade-smooth-normals.obj?raw";
 import GrassShader from "./shaders/grass.wgsl?raw";
 
-export const Foliage = async () => {
+export const Grass = async () => {
   // SETUP
   const rendererData = await Init();
   const { device, format, context } = rendererData;
