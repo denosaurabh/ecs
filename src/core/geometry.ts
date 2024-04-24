@@ -164,7 +164,7 @@ export class GEOMETRY_FACTORY {
     return data;
   }
 
-  public get THREED_POSITION_NORMAL_LAYOUT(): GPUVertexBufferLayout {
+  public get THREED_POSITION_NORMAL_UV_LAYOUT(): GPUVertexBufferLayout {
     return this.storage.buffers.createVertexLayout({
       attributes: [
         {

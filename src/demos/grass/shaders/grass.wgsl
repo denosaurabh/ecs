@@ -107,7 +107,6 @@ fn rand(x: f32) -> f32 {
     return y; // * 2.0 - 1.0
 }
 
-
 fn noise2(n: vec2f) -> f32 {
     let d = vec2f(0., 1.);
     let b = floor(n);

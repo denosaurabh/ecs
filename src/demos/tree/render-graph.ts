@@ -1,10 +1,9 @@
 import { World } from "@utils";
 import { Scene } from "./scene";
 
-import ShadowShader from "./shaders/shadow.wgsl?raw";
-import DeferredShader from "./shaders/deferred.wgsl?raw";
-import ShadowRenderShader from "./shaders/shadow-render.wgsl?raw";
-import CanvasShader from "./shaders/canvas.wgsl?raw";
+import ShadowShader from "./shaders/leaf.shadow.wgsl?raw";
+import DeferredShader from "./shaders/leaf.deferred.wgsl?raw";
+import ShadowRenderShader from "./shaders/leaf.render.wgsl?raw";
 
 import { BindGroupEntryType } from "@core";
 
@@ -16,7 +15,6 @@ export const RenderGraph = (world: World) => {
     rendererData: { format, size, context },
     bindGroups,
     geometry,
-    transform,
   } = world;
 
   // commons
@@ -40,22 +38,7 @@ export const RenderGraph = (world: World) => {
   ///////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
   // DEFERRED PASS
-  const normalRender = factory.textures.createTexture({
-    size,
-    format,
-    usage,
-  });
-  const albedoRender = factory.textures.createTexture({
-    size,
-    format,
-    usage,
-  });
   const shadowRender = factory.textures.createTexture({
-    size,
-    format,
-    usage,
-  });
-  const surfaceIdRender = factory.textures.createTexture({
     size,
     format,
     usage,
@@ -68,41 +51,38 @@ export const RenderGraph = (world: World) => {
   });
   const deferredDepthView = deferredDepth.createView();
 
+  /* ******************************************************************************************************************* */
+  /* ******************************************************************************************************************* */
+
+  const { vertexBufferLayouts, bindGroupLayouts, render: scene } = Scene(world);
+
+  /* ******************************************************************************************************************* */
+  /* ******************************************************************************************************************* */
+
   ///////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
   // SHADOWS
-  const showShadowRender = factory.textures.createTexture({
-    size,
-    format,
-    usage,
-  });
 
   /* ******************************************************************************************************************* */
   /* ******************************************************************************************************************* */
-
-  const transformBindGroupLayout = transform.new().bindGroupLayout;
 
   ///////////////////////////////////////////////////////////////
   const shadowShader = factory.shaders.create({
     label: "shadow shader",
     code: ShadowShader,
     frag: "fragMain",
-    vertex: "vertexMain",
+    vertex: "vertMain",
   });
 
   const [shadowPipeline] = factory.pipelines.create({
     label: "shadow pipeline",
     layout: {
-      bindGroups: [bindGroups.layout, transformBindGroupLayout],
+      bindGroups: [bindGroups.layout, ...bindGroupLayouts],
     },
     shader: shadowShader,
-    vertexBufferLayouts: [geometry.THREED_POSITION_NORMAL_UV_LAYOUT],
+    vertexBufferLayouts,
     depthStencil: "depth24plus|less|true",
-    fragmentTargets: [
-      // {
-      //   format,
-      // },
-    ],
+    fragmentTargets: [],
     settings: {
       topology: "triangle-list",
       cullMode: "front",
@@ -124,13 +104,8 @@ export const RenderGraph = (world: World) => {
           ),
           visibility: GPUShaderStage.VERTEX,
         },
-      ],
-    });
 
-  const [deferredShadowMapBinding, deferredShadowMapBindGroupLayout] =
-    factory.bindGroups.create({
-      label: "deferred shadow map bind group",
-      entries: [
+        // deferredShadowMapBinding
         {
           type: BindGroupEntryType.sampler({
             type: "comparison",
@@ -152,6 +127,31 @@ export const RenderGraph = (world: World) => {
       ],
     });
 
+  // const [deferredShadowMapBinding, deferredShadowMapBindGroupLayout] =
+  //   factory.bindGroups.create({
+  //     label: "deferred shadow map bind group",
+  //     entries: [
+  //       {
+  //         type: BindGroupEntryType.sampler({
+  //           type: "comparison",
+  //         }),
+  //         resource: factory.textures.createSampler({
+  //           compare: "less",
+  //           magFilter: "linear",
+  //           minFilter: "linear",
+  //         }),
+  //         visibility: GPUShaderStage.FRAGMENT,
+  //       },
+  //       {
+  //         type: BindGroupEntryType.texture({
+  //           sampleType: "depth",
+  //         }),
+  //         resource: shadowDepthView,
+  //         visibility: GPUShaderStage.FRAGMENT,
+  //       },
+  //     ],
+  //   });
+
   const deferredShader = factory.shaders.create({
     label: "deferred shader",
     code: DeferredShader,
@@ -162,24 +162,17 @@ export const RenderGraph = (world: World) => {
     layout: {
       bindGroups: [
         bindGroups.layout,
-        transformBindGroupLayout,
+
+        ...bindGroupLayouts,
+
         deferredBindGroupLayout,
-        deferredShadowMapBindGroupLayout,
+        // deferredShadowMapBindGroupLayout,
       ],
     },
     shader: deferredShader,
-    vertexBufferLayouts: [geometry.THREED_POSITION_NORMAL_UV_LAYOUT],
+    vertexBufferLayouts,
     depthStencil: "depth24plus|less|true",
     fragmentTargets: [
-      {
-        format,
-      },
-      {
-        format,
-      },
-      {
-        format,
-      },
       {
         format,
       },
@@ -221,24 +214,10 @@ export const RenderGraph = (world: World) => {
           resource: sampler,
           visibility,
         },
-        {
-          type: BindGroupEntryType.texture({}),
-          resource: albedoRender.createView(),
-          visibility,
-        },
-        {
-          type: BindGroupEntryType.texture({}),
-          resource: normalRender.createView(),
-          visibility,
-        },
+
         {
           type: BindGroupEntryType.texture({}),
           resource: shadowRender.createView(),
-          visibility,
-        },
-        {
-          type: BindGroupEntryType.texture({}),
-          resource: surfaceIdRender.createView(),
           visibility,
         },
       ],
@@ -267,59 +246,6 @@ export const RenderGraph = (world: World) => {
       cullMode: "none",
     },
   });
-
-  ///////////////////////////////////////////////////////////////
-  const canvasGeo = geometry.POSTPROCESS_QUAD();
-
-  const canvasShader = factory.shaders.create({
-    label: "canvas shader",
-    code: CanvasShader,
-  });
-
-  const canvasSampler = factory.textures.createSampler({
-    minFilter: "linear",
-    magFilter: "linear",
-  });
-
-  const [canvasPipelineBindGroup, canvasPipelineBindGroupLayout] =
-    factory.bindGroups.create({
-      label: "canvas bind group",
-      entries: [
-        {
-          type: BindGroupEntryType.sampler({}),
-          resource: canvasSampler,
-          visibility,
-        },
-        {
-          type: BindGroupEntryType.texture({}),
-          resource: showShadowRender.createView(),
-          visibility,
-        },
-      ],
-    });
-
-  const [canvasPipeline] = factory.pipelines.create({
-    label: "canvas pipeline",
-    layout: {
-      bindGroups: [canvasPipelineBindGroupLayout],
-    },
-    shader: canvasShader,
-    vertexBufferLayouts: [canvasGeo.layout],
-    fragmentTargets: [
-      {
-        format,
-      },
-    ],
-    settings: {
-      topology: "triangle-list",
-      cullMode: "none",
-    },
-  });
-
-  /* ******************************************************************************************************************* */
-  /* ******************************************************************************************************************* */
-
-  const scene = Scene(world);
 
   /* ******************************************************************************************************************* */
   /* ******************************************************************************************************************* */
@@ -355,25 +281,7 @@ export const RenderGraph = (world: World) => {
       label: "deferred pass",
       colorAttachments: [
         {
-          view: albedoRender.createView(),
-          loadOp: "clear",
-          storeOp: "store",
-          clearValue: { r: 0, g: 0, b: 0, a: 1 },
-        },
-        {
-          view: normalRender.createView(),
-          loadOp: "clear",
-          storeOp: "store",
-          clearValue: { r: 0, g: 0, b: 0, a: 1 },
-        },
-        {
           view: shadowRender.createView(),
-          loadOp: "clear",
-          storeOp: "store",
-          clearValue: { r: 0, g: 0, b: 0, a: 1 },
-        },
-        {
-          view: surfaceIdRender.createView(),
           loadOp: "clear",
           storeOp: "store",
           clearValue: { r: 0, g: 0, b: 0, a: 1 },
@@ -389,8 +297,8 @@ export const RenderGraph = (world: World) => {
 
     deferredPass.setBindGroup(0, bindGroups.main);
 
-    deferredPass.setBindGroup(2, deferredBindGroup);
-    deferredPass.setBindGroup(3, deferredShadowMapBinding);
+    deferredPass.setBindGroup(3, deferredBindGroup);
+    // deferredPass.setBindGroup(4, deferredShadowMapBinding);
 
     deferredPass.setPipeline(deferredPipeline);
 
@@ -406,7 +314,7 @@ export const RenderGraph = (world: World) => {
       label: "shadow render pass",
       colorAttachments: [
         {
-          view: showShadowRender.createView(),
+          view: context.getCurrentTexture().createView(),
           loadOp: "clear",
           storeOp: "store",
           clearValue: { r: 0.9, g: 0.81, b: 0.66, a: 1 },
@@ -422,30 +330,5 @@ export const RenderGraph = (world: World) => {
     shadowRenderPass.draw(shadowRenderGeo.vertexCount);
 
     shadowRenderPass.end();
-
-    ///////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////
-    // final canvas
-    const canvasPass = encoder.beginRenderPass({
-      label: "final canvas pass",
-      colorAttachments: [
-        {
-          view: context.getCurrentTexture().createView(),
-          loadOp: "clear",
-          storeOp: "store",
-          clearValue: { r: 0.9, g: 0.81, b: 0.66, a: 1 },
-          // clearValue: { r: 0, g: 0, b: 0, a: 1 },
-        },
-      ],
-    });
-
-    canvasPass.setPipeline(canvasPipeline);
-    canvasPass.setBindGroup(0, canvasPipelineBindGroup);
-
-    canvasPass.setVertexBuffer(0, canvasGeo.buffer);
-    canvasPass.draw(canvasGeo.vertexCount);
-
-    canvasPass.end();
   };
 };

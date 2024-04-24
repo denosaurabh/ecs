@@ -15,6 +15,7 @@ struct Transform {
 
 @group(2) @binding(0) var<uniform> totalInstances : u32;
 
+
 /* ********** */
 struct VertexInput {
     @builtin(instance_index) InstanceIndex: u32,
@@ -23,14 +24,10 @@ struct VertexInput {
     @location(2) uv: vec2f,
     // instance data
     @location(3) translation: vec3f,
-    // @location(4) scale: f32,
 }
 
 struct VertexOutput {
     @builtin(position) Position: vec4f,
-    @location(1) normal: vec3f,
-    @location(2) uv: vec2f,
-    @location(3) @interpolate(flat) ii: u32,
 }
 
 @vertex
@@ -50,45 +47,20 @@ fn vertMain(input: VertexInput) -> VertexOutput {
 
     // OUTPUT
     var output: VertexOutput;
-
     output.Position = pv.projView * model.modelMat * vec4f(pos, 1.0);
-
-    var tNormal = model.invModelMat * vec4f(input.normal, 0.0);
-    output.normal = normalize(vec3f(tNormal.x, tNormal.y, tNormal.z));
-
-    output.uv = input.uv;
-    output.ii = input.InstanceIndex;
-
     return output;
-
 }
 
-const albedoTop = vec3f(0.656, 0.876, 0.493); 
-const albedoBottom = vec3f(0.236, 0.568, 0.456); // 0.143, 0.529, 0.394
+
 
 @fragment
-fn fragMain(input: VertexOutput) -> @location(0) vec4f {
-    var color = albedoTop;
-    color = input.normal;
-
-    return vec4f(color, 1.0);
+fn fragMain() -> @location(0) vec4<f32> {
+  return vec4f(1.0);
 }
-
-
-
-
-
-
-/* ************************************************************************************ */
-/* ************************************************************************************ */
-/* ************************************************************************************ */
-/* ************************************************************************************ */
-
-
-
 
 
 fn rand(x: f32) -> f32 {
     let y = fract(sin(x * 1597.0) * 43758.5453123);
     return y; // * 2.0 - 1.0
 }
+
