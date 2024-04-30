@@ -9,12 +9,15 @@ export class IsometricCamera {
   private left: number = 0;
   private right: number = 0;
 
-  private _frustumSize: number = 30;
+  private _frustumSize: number = 10;
   private aspectRatio: number = 0;
 
   private _eye: [number, number, number] = [50, 50, 50];
   private _target: [number, number, number] = [0, 0, 0];
   private _up: [number, number, number] = [0, 1, 0];
+
+  private readonly _projection: Float32Array = new Float32Array(16);
+  private readonly _view: Float32Array = new Float32Array(16);
 
   private readonly _projectionView: Float32Array = new Float32Array(16);
   public readonly projViewAndInvProjViewBuffer: GPUBuffer;
@@ -82,6 +85,14 @@ export class IsometricCamera {
     return this._up;
   }
 
+  get projection() {
+    return this._projection;
+  }
+
+  get view() {
+    return this._view;
+  }
+
   get projectionView() {
     return this._projectionView;
   }
@@ -107,9 +118,6 @@ export class IsometricCamera {
     this.right = (this._frustumSize * this.aspectRatio) / 2;
   }
 
-  // temp
-  private projection: Float32Array = new Float32Array(16);
-  private view: Float32Array = new Float32Array(16);
   private updateMatrices() {
     const {
       top,
@@ -123,12 +131,19 @@ export class IsometricCamera {
       _up: up,
     } = this;
 
-    mat4.ortho(left, right, bottom, top, near, far, this.projection);
-    mat4.lookAt(eye, target, up, this.view);
+    mat4.ortho(left, right, bottom, top, near, far, this._projection);
+    // mat4.perspective(
+    //   0.2,
+    //   window.innerWidth / window.innerHeight,
+    //   near,
+    //   far,
+    //   this._projection
+    // );
+    mat4.lookAt(eye, target, up, this._view);
 
     mat4.multiply(
-      this.projection,
-      this.view,
+      this._projection,
+      this._view,
       this._projectionView
     ) as Float32Array;
 

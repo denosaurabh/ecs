@@ -65,6 +65,8 @@ export class GlobalSetup {
   private readonly sunControl: SunControl;
 
   // buffers
+  private readonly cameraProjection: GPUBuffer;
+  private readonly cameraView: GPUBuffer;
   private readonly cameraEye: GPUBuffer;
   private readonly sunPosition: GPUBuffer;
 
@@ -123,12 +125,25 @@ export class GlobalSetup {
       "camera-pos"
     );
 
+    const cameraProjection = factory.buffers.createUniform(
+      this.camera.projection,
+      "camera-projection"
+    );
+
+    const cameraView = factory.buffers.createUniform(
+      this.camera.view,
+      "camera-view"
+    );
+
     const sunPosition = factory.buffers.createUniform(
       new Float32Array([10, 0, 0]),
       "sun-position"
     );
 
     this.cameraEye = cameraEye;
+    this.cameraProjection = cameraProjection;
+    this.cameraView = cameraView;
+
     this.sunPosition = sunPosition;
 
     ////////////////////////////////////////////////////////////////
@@ -173,6 +188,18 @@ export class GlobalSetup {
       visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
     };
 
+    const cameraProjectionEntry = {
+      type: BindGroupEntryType.buffer({}),
+      resource: factory.buffers.getBindingResource(cameraProjection),
+      visibility: GPUShaderStage.VERTEX,
+    };
+
+    const cameraViewEntry = {
+      type: BindGroupEntryType.buffer({}),
+      resource: factory.buffers.getBindingResource(cameraView),
+      visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+    };
+
     ////////////////////////////////////////////////////////////////
     ////////////////    CREATE BIND GROUPS     /////////////////////
     ////////////////////////////////////////////////////////////////
@@ -186,13 +213,15 @@ export class GlobalSetup {
             resource: factory.buffers.getBindingResource(
               this.camera.projViewAndInvProjViewBuffer
             ),
-            visibility: GPUShaderStage.VERTEX,
+            visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
           },
           timeEntry,
           playerPositionEntry,
           sunPositionEntry,
           sizeEntry,
           cameraEyeEntry,
+          cameraProjectionEntry,
+          cameraViewEntry,
         ],
       });
 
@@ -204,13 +233,15 @@ export class GlobalSetup {
           resource: factory.buffers.getBindingResource(
             this.sun.projViewAndInvProjViewBuffer
           ),
-          visibility: GPUShaderStage.VERTEX,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         },
         timeEntry,
         playerPositionEntry,
         sunPositionEntry,
         sizeEntry,
         cameraEyeEntry,
+        cameraProjectionEntry,
+        cameraViewEntry,
       ],
     });
 
@@ -242,6 +273,7 @@ export class GlobalSetup {
   }
 
   public tick() {
+    // SET FLOAT32 ARRAY
     this.cameraEyeFloat32[0] = this.camera.eye[0];
     this.cameraEyeFloat32[1] = this.camera.eye[1];
     this.cameraEyeFloat32[2] = this.camera.eye[2];
@@ -250,9 +282,14 @@ export class GlobalSetup {
     this.sunEyeFloat32[1] = this.sun.eye[1];
     this.sunEyeFloat32[2] = this.sun.eye[2];
 
+    // SET BUFFERS
     this.factory.buffers.write(this.cameraEye, this.cameraEyeFloat32);
     this.factory.buffers.write(this.sunPosition, this.sunEyeFloat32);
 
+    this.factory.buffers.write(this.cameraProjection, this.camera.projection);
+    this.factory.buffers.write(this.cameraView, this.camera.view);
+
+    // TICK
     this.time.tick();
     this.camera.tick();
     this.sun.tick();

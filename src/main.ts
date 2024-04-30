@@ -1,6 +1,12 @@
 import "./index.css";
 
-import { EdgesAndShadowMap, ImportObj, Grass, Tree } from "./demos";
+import {
+  EdgesAndShadowMap,
+  ImportObj,
+  Grass,
+  Tree,
+  AmbientOcclusion,
+} from "./demos";
 
 let cleanup: () => void;
 
@@ -67,6 +73,10 @@ async function setDemo(demo: string) {
     }
     case "#tree": {
       cleanup = await Tree();
+      break;
+    }
+    case "#ao": {
+      cleanup = await AmbientOcclusion();
       break;
     }
     default: {
