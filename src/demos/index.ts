@@ -3,3 +3,4 @@ export { ImportObj } from "./import_obj";
 export { Grass } from "./grass";
 export { Tree } from "./tree";
 export { AmbientOcclusion } from "./ao";
+export { CuriousCabins } from "./curious-cabins";

@@ -36,8 +36,8 @@ fn vertexMain(
 
     // VIEW SPACE ******************************************************************************************
 
-    let viewPos = camView * model.modelMat * vec4f(position, 1.0);
-    output.viewPos = vec4f(viewPos.xyz, 1.0);
+    // let viewPos = camView * model.modelMat * vec4f(position, 1.0);
+    // output.viewPos = vec4f(viewPos.xyz, 1.0);
 
     /* transform the normal vector from model space to view space */
 
@@ -52,10 +52,23 @@ fn vertexMain(
 
     // 1) METHOD 3 
     // output.viewNormal = normalize(thenewnormal * camView);
-    output.viewNormal = vec4f( normalize((camView * thenewnormal).xyz), 1.);
+    // output.viewNormal = vec4f( normalize((camView * thenewnormal).xyz), 1.);  // <-------   FINNALY PICKED 
 
     // can it work? possibly?
     // output.viewNormal = vec4f( normalize(vec3f(thenewnormal.xyz)), 1.);
+
+
+
+
+
+
+
+    let viewPosNew = camView * model.modelMat * vec4f(position, 1.0);
+    output.viewPos = vec4f(viewPosNew.xyz, 1.0);
+
+    let worldNormal = normalize((model.invModelMat * vec4f(normal, 0.0)).xyz);
+    output.viewNormal = vec4f(normalize((camView * vec4f(worldNormal, 0.0)).xyz), 0.0);
+
 
     return output;
 }

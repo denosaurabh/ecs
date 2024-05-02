@@ -6,6 +6,7 @@ import {
   Grass,
   Tree,
   AmbientOcclusion,
+  CuriousCabins,
 } from "./demos";
 
 let cleanup: () => void;
@@ -77,6 +78,10 @@ async function setDemo(demo: string) {
     }
     case "#ao": {
       cleanup = await AmbientOcclusion();
+      break;
+    }
+    case "#curious-cabins": {
+      cleanup = await CuriousCabins();
       break;
     }
     default: {

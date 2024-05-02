@@ -9,7 +9,7 @@ export class IsometricCamera {
   private left: number = 0;
   private right: number = 0;
 
-  private _frustumSize: number = 10;
+  private _frustumSize: number = 4;
   private aspectRatio: number = 0;
 
   private _eye: [number, number, number] = [50, 50, 50];

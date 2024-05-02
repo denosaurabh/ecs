@@ -55,7 +55,6 @@ struct Projection {
 };
 @group(2) @binding(0) var<uniform> cam : Projection;
 
-
 @group(3) @binding(0) var<uniform> noise: array<vec4f, 16>;
 
 
@@ -114,6 +113,8 @@ fn fragmentMain(
     var albedo = textureSample(atex, samp, texCoords).rgb;
     var normal = textureSample(ntex, samp, texCoords).rgb;
 
+    var depth = textureSample(rDep, samp, texCoords);
+
     let vTexCoord = vec2<i32>(texCoords.xy * size);
     let vPosition = textureLoad(pvtex, vTexCoord, 0).xyz;
 
@@ -146,7 +147,7 @@ fn fragmentMain(
     for (var i = 0u; i < kernelSize; i++)
     {
         let sample_vec = radius * (TBN * kernelSamples[i].xyz);
-        let sample_pos = vPosition + (sample_vec * 0.2);
+        let sample_pos = vPosition + (sample_vec); // * 0.2;
 
         /* IMPORTANT - `sample_clip_pos` & `sample_ndc` depends on camera type, i.e. - orthographic or projection */
         /* PROJECTION */
@@ -155,9 +156,9 @@ fn fragmentMain(
 
         /* ORTHOGRAPHIC */
         let sample_clip_pos = cam.projMat * vec4<f32>(sample_pos, 1.0);
-        let sample_ndc = sample_clip_pos.xy; // / sample_clip_pos.w; //  * 2.; // * 2. - is added
+        let sample_ndc = sample_clip_pos.xy;// / sample_clip_pos.w; //  * 2.; // * 2. - is added
 
-        let sample_uv = (sample_ndc * vec2<f32>(0.5, -0.5) + 0.5);// * 2.; // * 2. - is added
+        let sample_uv = sample_ndc * vec2<f32>(0.5, -0.5) + 0.5;// * 2.; // * 2. - is added
         var sample_coords = vec2<i32>(floor(sample_uv * vec2<f32>(size)));
         sample_coords = clamp(sample_coords, vec2<i32>(0), vec2<i32>(size) - 1);
 
@@ -166,22 +167,30 @@ fn fragmentMain(
             continue;
         }
 
+        // OPTION:::::::::: 1
         let z = screen_space_depth_to_view_space_z(sample_depth);
         // let z = textureLoad(pvtex, vec2<i32>(offset.xy * size), 0);
 
         // let range_check = smoothstep(0.0, 1.0, radius / abs(vPosition.z - z));
-        occlusion = occlusion + select(0.0, 1.0, z >= sample_pos.z + bias);// * range_check;
+        // occlusion = occlusion + select(0.0, 1.0, z >= sample_pos.z + bias);// * range_check;
+
+
+        // OPTION:::::::::: 2
+        let sample_view_pos = textureLoad(pvtex, sample_coords, 0).xyz;
+        // let range_check = smoothstep(0.0, 1.0, radius / abs(view_pos.z - sample_view_pos.z));
+        occlusion = occlusion + select(0.0, 1.0, sample_view_pos.z >= sample_pos.z + bias);// * range_check;
+
 
         // output = output + sample_pos;
         // output = output + vec3f(sample_clip_pos.xyz);
         // output = output + vec3f(sample_ndc.xy, 0.);
         // output = output + vec3f(sample_uv.xy, 0.);
         // output = output + vec3f(range_check);
-        // output = output + select(0.0, 1.0, z >= sample_pos.z + bias);
-        output = output + normalize( vec3f(abs(sample_pos.z)) );
+        // output = output + normalize( vec3f(abs(sample_pos.z)) );
         // output = output + normalize(abs(vec3f(z)));
         // output = output + vec3f(sample_depth);
         // output = vec3f(normalize(abs(sample_clip_pos.xyz)));
+        // output = output + bias;
 
         ////////////////////////////////////////////////
 
@@ -223,6 +232,8 @@ fn fragmentMain(
     // color = vec3f(texCoords, 0.0);
     // color = vec3f(f32(vTexCoord.x), f32(vTexCoord.y), 0.0);
 
+    // color = vec3f(depth);
+
     // color = albedo;
     // color = normal;
     // color = randomVec;
@@ -233,7 +244,7 @@ fn fragmentMain(
     // color = tangent;
     // color = bitangent;
 
-    color = vec3f( output / f32(kernelSize) );
+    // color = vec3f( output / f32(kernelSize) );
     // color = vec3f( 1.0 - (occlusion / f32(kernelSize)) );
 
     return vec4f(color, 1.0);
@@ -539,6 +550,6 @@ fn screen_space_depth_to_view_space_z(d: f32) -> f32 {
 
     // FOR ORTHOGRAPHIC
     let near = 0.001;// cam.near;
-    let far = 100.;//cam.far;
+    let far = 150.;//cam.far;
     return mix(near, far, d);
 }
