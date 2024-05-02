@@ -64,12 +64,12 @@ export const RenderGraph = async (world: World) => {
     usage,
   });
   const surfaceIdRenderView = surfaceIdRender.createView();
-  const viewNormalRender = factory.textures.createTexture({
-    size,
-    format,
-    usage,
-  });
-  const viewNormalRenderView = viewNormalRender.createView();
+  // const viewNormalRender = factory.textures.createTexture({
+  //   size,
+  //   format,
+  //   usage,
+  // });
+  // const viewNormalRenderView = viewNormalRender.createView();
 
   const deferredDepth = factory.textures.createTexture({
     size,

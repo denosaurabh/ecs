@@ -193,22 +193,22 @@ export const RenderGraph = (world: World) => {
     // kernelOffsets[i * 3 + 2] = sample[2];
   }
 
-  const str = Array(kernelSize)
-    .fill(0)
-    .reduce((acc, _, i) => {
-      const newAcc =
-        acc +
-        `vec3f(${kernelOffsets[i * 3].toFixed(3)}, ${kernelOffsets[
-          i * 3 + 1
-        ].toFixed(3)}, ${kernelOffsets[i * 3 + 2].toFixed(3)}),\n`;
+  // const str = Array(kernelSize)
+  //   .fill(0)
+  //   .reduce((acc, _, i) => {
+  //     const newAcc =
+  //       acc +
+  //       `vec3f(${kernelOffsets[i * 3].toFixed(3)}, ${kernelOffsets[
+  //         i * 3 + 1
+  //       ].toFixed(3)}, ${kernelOffsets[i * 3 + 2].toFixed(3)}),\n`;
 
-      return newAcc;
-    }, "");
+  //     return newAcc;
+  //   }, "");
 
   // console.log(str);
 
   // Set noiseScale based on screen resolution
-  const noiseScale = [size.width / noiseSize, size.height / noiseSize];
+  // const noiseScale = [size.width / noiseSize, size.height / noiseSize];
 
   // const aoData = new Float32Array(1184 / 4);
   // aoData.set(camera.projectionView, 0);

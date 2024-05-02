@@ -54,11 +54,11 @@ fn fragmentMain(
     var shadowColor = (1. - shadow) * vec3f(.5);
 
     // FINAL COLOR
-    albedo = vec3f(1.);
+    // albedo = vec3f(1.);
     var color = albedo + shadowColor;
 
-    color -= edge2 * 5.;
-    // color -= ceil( pow(edge, vec3f(.15)) * 0.1 );
+    color -= edge2 * 2. * vec3f(1., 0., 0.);
+    color -= ceil( pow(edge, vec3f(.15)) * 0.1 );
 
     // color = albedo;
     // color = normal;
