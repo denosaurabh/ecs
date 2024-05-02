@@ -44,32 +44,38 @@ fn fragmentMain(
 
     // calculate edges
     var texelSize = vec2<f32>(viewSize.x / (viewSize.x * viewSize.y), viewSize.y / (viewSize.x * viewSize.y));
-    // texelSize *= vec2f(0.01);
 
-    // samples
     var edge = calcEdges(texCoords, texelSize * vec2f(0.01));
     var edge2 = calcEdges(texCoords + vec2f(0., texelSize.y * 3.), texelSize);
 
-    // let diffuse = vec3f(0.5) * dot(normal, sunPos);
+    // FINAL COLOR
     var shadowColor = (1. - shadow) * vec3f(.5);
 
-    // FINAL COLOR
-    // albedo = vec3f(1.);
     var color = albedo + shadowColor;
 
-    color -= edge2 * 2. * vec3f(1., 0., 0.);
+    color -= edge2 * 2. * vec3f(0., 0., 1.);
     color -= ceil( pow(edge, vec3f(.15)) * 0.1 );
 
-    // color = albedo;
-    // color = normal;
-    // color = pow(1. - shadow, vec3f(1.) ); 
-    // color = surfaceId;
-    // color = edge; 
+    // NOISE
+    let noise = rand22(texCoords * viewSize);
+
+    color = mix(color, vec3f(noise * 0.3), 0.4 ); // 0.5
 
     return vec4f(color, 1.0);
 }
 
 
+// color = albedo;
+// color = normal;
+// color = pow(1. - shadow, vec3f(1.) ); 
+// color = surfaceId;
+// color = edge;
+// color = mix(albedo, shadowColor, 0.5);
+
+
+// *************************************************************************************************
+// ******************************************* EDGES ***********************************************
+// *************************************************************************************************
 
 
 
@@ -93,3 +99,12 @@ fn calcEdges(texCoords: vec2f, texelSize: vec2f) -> vec3f {
 
     return vec3f(edge.x + edge.y + edge.z) / 3.0;
 }
+
+
+
+// *************************************************************************************************
+// *************************************** WHITE NOISE *********************************************
+// *************************************************************************************************
+
+fn rand22(n: vec2f) -> f32 { return fract(sin(dot(n, vec2f(12.9898, 4.1414))) * 43758.5453); }
+

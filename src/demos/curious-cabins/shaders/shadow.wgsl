@@ -27,7 +27,7 @@ fn vertexMain(
   let modelMatrix = computeModelMatrix(
       vec3f(translation.x, translation.z, -translation.y) / 2.,
       vec3f(-rotation.x, -rotation.z, rotation.y),
-      vec3f(scale.x, scale.z, scale.y),
+      abs( vec3f(scale.x, scale.z, scale.y) ),
   );
 
   output.Position = pv.projView * modelMatrix * vec4f(position, 1.0);

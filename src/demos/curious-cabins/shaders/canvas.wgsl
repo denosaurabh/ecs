@@ -35,16 +35,15 @@ fn fragmentMain(
 
     // COLOR CORRECTION
     color = gammaCorrect(color, 2.2);
-    // color = adjustContrast(color, 0.8);
-    // color = increaseLightness(color, .15);
+    color = adjustContrast(color, 0.8);
+    color = increaseLightness(color, .15);
 
     // LUT
     var finalColor = textureSample(lutTexture, lutSampler, color).rgb;
     finalColor = color;
 
     // NOISE
-    let noise = rand22(texCoords * screenSize);
-    finalColor = mix(finalColor, vec3f(noise * 0.3), 0.2);
+    // finalColor = mix(finalColor, vec3f(noise * 0.3), 0.2);
 
     return vec4f(finalColor, 1.0);
     // return vec4f(vec3f(noise), 1.0);

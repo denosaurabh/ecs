@@ -4,7 +4,7 @@ import LUTImage from "./data/lut-2.png";
 export const LUT = async (device: GPUDevice) => {
   const lutDimensions = { width: 64, height: 64, depth: 64 };
 
-  const lutData = await loadLUTData(LUTImage);
+  const lutData = await loadLUTData(LUTImage, lutDimensions);
   const lutTexture = createLUTTexture(device, lutData, lutDimensions);
 
   const lutSampler = device.createSampler({
@@ -19,7 +19,10 @@ export const LUT = async (device: GPUDevice) => {
   };
 };
 
-async function loadLUTData(url: string): Promise<Uint8Array> {
+async function loadLUTData(
+  url: string,
+  size: { width: number; height: number; depth: number }
+): Promise<Uint8Array> {
   const response = await fetch(url);
   const blob = await response.blob();
 
@@ -43,8 +46,10 @@ async function loadLUTData(url: string): Promise<Uint8Array> {
   return new Uint8Array(pixelData.buffer);
 
   // const arrayBuffer = await response.arrayBuffer();
-  // console.log({ arrayBuffer });
-  // return arrayBuffer;
+  // const uint8Array = new Uint8Array(64 * 64 * 64 * 4);
+  // uint8Array.set(arrayBuffer);
+
+  // return uint8Array;
 }
 
 // export const convertImageToUint8Array = async (imageUri: string) => {

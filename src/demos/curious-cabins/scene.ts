@@ -1,6 +1,9 @@
 import { World } from "@utils";
 
+// import CubesData from "./data/only-house.txt?raw";
 import CubesData from "./data/some-boxes-colors.txt?raw";
+// import CubesData from "./data/gamma-img-22-blender-1.txt?raw";
+
 import { VertexBufferLayout } from "@core";
 
 export const Scene = (world: World) => {

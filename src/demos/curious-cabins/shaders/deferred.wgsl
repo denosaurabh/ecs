@@ -5,6 +5,7 @@ struct ProjectionView {
 @group(0) @binding(0) var<uniform> pv : ProjectionView;
 @group(0) @binding(3) var<uniform> sunPos : vec3f;
 @group(0) @binding(4) var<uniform> size : vec2f;
+@group(0) @binding(5) var<uniform> camEye : vec3f;
 @group(0) @binding(7) var<uniform> camView : mat4x4f;
 
 struct SunProjectionView {
@@ -45,18 +46,20 @@ fn vertexMain(
     let modelMatrix = computeModelMatrix(
         vec3f(translation.x, translation.z, -translation.y) / 2.,
         vec3f(-rotation.x, -rotation.z, rotation.y),
-        vec3f(scale.x, scale.z, scale.y),
+        abs( vec3f(scale.x, scale.z, scale.y) ),
     );
 
-    output.Position = pv.projView * modelMatrix * vec4f(position, 1.0);
+    let modelPos = modelMatrix * vec4f(position, 1.0);
+
+    let finalPos = pv.projView * modelPos;
+    output.Position = finalPos;
     output.pos = position.xyz;
 
-    let posFromLight = sunPV.projView * modelMatrix * vec4(position, 1.0);
+    let posFromLight = sunPV.projView * modelPos;
     output.shadowPos = vec3(
         posFromLight.xy * vec2(0.5, -0.5) + vec2(0.5),
         posFromLight.z
     );
-
 
 
     let normalMatrix = mat3x3<f32>(
@@ -68,9 +71,11 @@ fn vertexMain(
     output.normal = normalize(normalMatrix * normal);
 
     output.viewNormal = modelMatrix * vec4f(normal, 1.); 
-    // output.viewNormal = vec4f( normalize((camView * modelMatrix * vec4f(normal, 1.0)).xyz), 1.); 
 
-    output.color = color;
+    // blinn phong
+    let finalColor = blinnPhong(color, finalPos.xyz, output.normal);
+    output.color = vec4f(finalColor, 1.) * color;
+
     output.uv = uv;
 
     return output;
@@ -90,7 +95,7 @@ const bias = 0.000;
 
 @fragment
 fn fragMain(
-input: VertexOutput
+    input: VertexOutput
 ) -> FragmentOutput {
     let shadowDepthTextureSize: f32 = size.x;
 
@@ -150,6 +155,39 @@ fn calculate_unique_color(instanceIndex: f32, normal: vec3f) -> vec3f {
 
 
 fn rand22(n: vec2f) -> f32 { return fract(sin(dot(n, vec2f(12.9898, 4.1414))) * 43758.5453); }
+
+
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+// :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+const u_suncolor = vec3f(1.0, 1.0, 1.0);
+
+const u_ambient = 0.2;
+
+const m_diffuse = 0.5;
+const m_shininess = 0.5;
+const m_specular = 0.5;
+
+fn blinnPhong(albedo: vec4f, fragPos: vec3f, normal: vec3f) -> vec3f {
+    // Ambient
+    let ambient = u_ambient;
+
+    // Diffuse
+    let sunDirection = normalize(sunPos - fragPos);
+    let diff = max(dot(normal, sunDirection), 0.0);
+    let diffuse = diff * m_diffuse;
+
+    // Specular
+    let viewDirection = normalize(camEye - fragPos);
+    let halfwayDir = normalize(sunDirection + viewDirection);
+    let spec = pow(max(dot(normal, halfwayDir), 0.0), m_shininess);
+    let specular = spec * m_specular;
+
+    // Combine the lighting components
+    let result = (ambient + diffuse ) * u_suncolor; // + specular
+    return result;
+}
+
 
 
 
