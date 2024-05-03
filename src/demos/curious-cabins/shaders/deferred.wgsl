@@ -75,6 +75,7 @@ fn vertexMain(
     // blinn phong
     let finalColor = blinnPhong(color, finalPos.xyz, output.normal);
     output.color = vec4f(finalColor, 1.) * color;
+    output.color = color;
 
     output.uv = uv;
 
@@ -160,7 +161,8 @@ fn rand22(n: vec2f) -> f32 { return fract(sin(dot(n, vec2f(12.9898, 4.1414))) * 
 // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 // :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-const u_suncolor = vec3f(1.0, 1.0, 1.0);
+// const u_suncolor = vec3f(1.0, 1.0, 1.0);
+const u_suncolor = vec3f(0.986, 0.862, 0.786);
 
 const u_ambient = 0.2;
 

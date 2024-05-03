@@ -60,6 +60,7 @@ fn fragmentMain(
     let noise = rand22(texCoords * viewSize);
 
     color = mix(color, vec3f(noise * 0.3), 0.4 ); // 0.5
+// color = albedo;
 
     return vec4f(color, 1.0);
 }

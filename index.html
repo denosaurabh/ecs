@@ -29,6 +29,38 @@
         <option value="ao">ambient occlusion</option>
         <option value="curious-cabins">curious cabins</option>
       </select>
+
+      <div
+        class="absolute top-20 right-2 bg-black/80 text-white/90 font-mono py-2 px-2.5 pr-4"
+      >
+        <p>color postpostprocess</p>
+
+        <div class="flex flex-col gap-2 mt-4">
+          <label>
+            temp
+
+            <input
+              type="range"
+              id="color_postprocess"
+              min="0"
+              max="100"
+              step="1"
+            />
+          </label>
+
+          <label>
+            temp
+
+            <input
+              type="range"
+              id="color_postprocess"
+              min="0"
+              max="100"
+              step="1"
+            />
+          </label>
+        </div>
+      </div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

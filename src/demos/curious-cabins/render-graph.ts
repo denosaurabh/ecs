@@ -394,12 +394,14 @@ export const RenderGraph = async (world: World) => {
     // deferred pass
     const deferredPass = encoder.beginRenderPass({
       label: "deferred pass",
+
       colorAttachments: [
         {
           view: albedoRenderView,
           loadOp: "clear",
           storeOp: "store",
-          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          // clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          clearValue: { r: 0.99, g: 0.85, b: 0.86, a: 1 },
         },
         {
           view: normalRenderView,
@@ -455,7 +457,8 @@ export const RenderGraph = async (world: World) => {
           view: showShadowRender.createView(),
           loadOp: "clear",
           storeOp: "store",
-          clearValue: { r: 0.9, g: 0.81, b: 0.66, a: 1 },
+          // clearValue: { r: 0.9, g: 0.81, b: 0.66, a: 1 },
+          clearValue: { r: 0.99, g: 0.85, b: 0.86, a: 1 },
           // clearValue: { r: 0, g: 0, b: 0, a: 1 },
         },
       ],
@@ -484,7 +487,8 @@ export const RenderGraph = async (world: World) => {
           resolveTarget: context.getCurrentTexture().createView(),
           loadOp: "clear",
           storeOp: "store",
-          clearValue: { r: 0.9, g: 0.81, b: 0.66, a: 1 },
+          clearValue: { r: 0.99, g: 0.85, b: 0.86, a: 1 },
+          // rgba(99.581%, 85.36%, 86.503%)
           // clearValue: { r: 0, g: 0, b: 0, a: 1 },
         },
       ],
