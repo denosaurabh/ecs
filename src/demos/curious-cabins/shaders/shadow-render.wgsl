@@ -42,6 +42,9 @@ fn fragmentMain(
     var normal = textureSample(ntex, samp, texCoords).rgb;
     var surfaceId = textureSample(itex, samp, texCoords).rgb;
 
+    var sDepth = textureSample(sDep, samp, texCoords);
+    var rDepth = textureSample(rDep, samp, texCoords);
+
     // calculate edges
     var texelSize = vec2<f32>(viewSize.x / (viewSize.x * viewSize.y), viewSize.y / (viewSize.x * viewSize.y));
 
@@ -60,12 +63,14 @@ fn fragmentMain(
     let noise = rand22(texCoords * viewSize);
 
     color = mix(color, vec3f(noise * 0.3), 0.4 ); // 0.5
-// color = albedo;
+    // color = albedo;
 
     return vec4f(color, 1.0);
 }
 
 
+// color = vec3f(sDepth);
+// color = vec3f(rDepth);
 // color = albedo;
 // color = normal;
 // color = pow(1. - shadow, vec3f(1.) ); 

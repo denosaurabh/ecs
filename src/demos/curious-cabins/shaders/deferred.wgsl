@@ -15,8 +15,11 @@ struct SunProjectionView {
 @group(1) @binding(0) var<uniform> sunPV : SunProjectionView;
 
 // fragment
-@group(2) @binding(0) var samp: sampler_comparison;
-@group(2) @binding(1) var depth: texture_depth_2d;
+@group(1) @binding(1) var samp: sampler_comparison;
+@group(1) @binding(2) var depth: texture_depth_2d;
+
+@group(1) @binding(3) var aSamp: sampler; // atlas texture sampler
+@group(1) @binding(4) var aTex: texture_2d<f32>; // atlas texture
 
 
 struct VertexOutput {
@@ -121,9 +124,11 @@ fn fragMain(
     // OUTPUT
     var output: FragmentOutput;
 
+    var prob = step(0.2, rand22(input.pos.xy + input.uv));
 
     output.albedo = input.color;
     // output.albedo = vec4f( mix(input.color.rgb, vec3f(rand22(input.uv)), 0.2) , 1.);
+    // output.albedo = textureSample(aTex, aSamp, input.uv);
 
     output.normal = vec4f(input.normal, 1.0);
     // output.viewNormal = input.viewNormal;

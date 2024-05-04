@@ -8,6 +8,7 @@ import CanvasShader from "./shaders/canvas.wgsl?raw";
 
 import { BindGroupEntryType } from "@core";
 import { LUT } from "./lut";
+import { ATLAS } from "./atlas";
 
 export const RenderGraph = async (world: World) => {
   const {
@@ -91,6 +92,7 @@ export const RenderGraph = async (world: World) => {
   /* ******************************************************************************************************************* */
 
   const lut = await LUT(device);
+  const atlas = await ATLAS(device);
 
   /* ******************************************************************************************************************* */
   /* ******************************************************************************************************************* */
@@ -140,13 +142,6 @@ export const RenderGraph = async (world: World) => {
           ),
           visibility: GPUShaderStage.VERTEX,
         },
-      ],
-    });
-
-  const [deferredShadowMapBinding, deferredShadowMapBindGroupLayout] =
-    factory.bindGroups.create({
-      label: "deferred shadow map bind group",
-      entries: [
         {
           type: BindGroupEntryType.sampler({
             type: "comparison",
@@ -165,8 +160,43 @@ export const RenderGraph = async (world: World) => {
           resource: shadowDepthView,
           visibility: GPUShaderStage.FRAGMENT,
         },
+        {
+          type: BindGroupEntryType.sampler({}),
+          resource: atlas.sampler,
+          visibility: GPUShaderStage.FRAGMENT,
+        },
+        {
+          type: BindGroupEntryType.texture({}),
+          resource: atlas.view,
+          visibility: GPUShaderStage.FRAGMENT,
+        },
       ],
     });
+
+  // const [deferredShadowMapBinding, deferredShadowMapBindGroupLayout] =
+  //   factory.bindGroups.create({
+  //     label: "deferred shadow map bind group",
+  //     entries: [
+  //       {
+  //         type: BindGroupEntryType.sampler({
+  //           type: "comparison",
+  //         }),
+  //         resource: factory.textures.createSampler({
+  //           compare: "less",
+  //           magFilter: "linear",
+  //           minFilter: "linear",
+  //         }),
+  //         visibility: GPUShaderStage.FRAGMENT,
+  //       },
+  //       {
+  //         type: BindGroupEntryType.texture({
+  //           sampleType: "depth",
+  //         }),
+  //         resource: shadowDepthView,
+  //         visibility: GPUShaderStage.FRAGMENT,
+  //       },
+  //     ],
+  //   });
 
   const deferredShader = factory.shaders.create({
     label: "deferred shader",
@@ -179,7 +209,7 @@ export const RenderGraph = async (world: World) => {
       bindGroups: [
         bindGroups.layout,
         deferredBindGroupLayout,
-        deferredShadowMapBindGroupLayout,
+        // deferredShadowMapBindGroupLayout,
       ],
     },
     shader: deferredShader,
@@ -438,7 +468,7 @@ export const RenderGraph = async (world: World) => {
 
     deferredPass.setBindGroup(0, bindGroups.main);
     deferredPass.setBindGroup(1, deferredBindGroup);
-    deferredPass.setBindGroup(2, deferredShadowMapBinding);
+    // deferredPass.setBindGroup(2, deferredShadowMapBinding);
 
     deferredPass.setPipeline(deferredPipeline);
 
